@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Colegios</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --verde: #356854;
+    --verde-claro: #5B8A74;
+    --verde-suave: #D9E2DE;
+    --amarillo: #FFF7D6;
+    --blanco: #FFFFFF;
+    --gris: #F6F8F9;
+    --texto: #1a2e28;
+    --sombra: 0 4px 24px rgba(53,104,84,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #eaf2ee; color: var(--texto); min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #356854 0%, #1a3d2e 100%);
+    color: white; padding: 18px 24px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-icon { font-size: 2rem; }
+  .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+  .header p { font-size: 0.8rem; opacity: 0.8; }
+  .header-badge {
+    margin-left: auto; background: rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 4px 14px; font-size: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+
+  /* BUSCADOR */
+  .search-card {
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: var(--sombra); margin-bottom: 20px;
+  }
+  .search-label { font-size: 0.8rem; font-weight: 600; color: var(--verde); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 100%; padding: 14px 48px 14px 18px;
+    border: 2px solid var(--verde-suave); border-radius: 12px;
+    font-size: 1rem; outline: none; transition: border 0.2s;
+    background: var(--gris);
+  }
+  .search-input:focus { border-color: var(--verde); background: white; }
+  .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+  .dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    z-index: 200; max-height: 220px; overflow-y: auto; border: 1px solid var(--verde-suave);
+  }
+  .dropdown-item {
+    padding: 12px 18px; cursor: pointer; border-bottom: 1px solid var(--gris);
+    transition: background 0.15s; font-size: 0.95rem;
+  }
+  .dropdown-item:hover { background: var(--amarillo); }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item mark { background: #fff176; border-radius: 3px; padding: 0 2px; }
+  .no-results { padding: 14px 18px; color: #888; font-style: italic; }
+
+  /* KPI CARDS */
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card {
+    background: white; border-radius: 14px; padding: 18px;
+    box-shadow: var(--sombra); text-align: center;
+    border-top: 4px solid var(--verde);
+  }
+  .kpi-num { font-size: 2rem; font-weight: 800; color: var(--verde); }
+  .kpi-label { font-size: 0.78rem; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* FICHA + GRÁFICA */
+  .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } .kpi-row { grid-template-columns: 1fr 1fr; } }
+
+  .ficha-card {
+    background: white; border-radius: 16px; padding: 0;
+    box-shadow: var(--sombra); overflow: hidden;
+  }
+  .ficha-header {
+    background: linear-gradient(135deg, #356854, #1a3d2e);
+    color: white; padding: 18px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ficha-nombre { font-size: 1.05rem; font-weight: 700; }
+  .ficha-tag {
+    background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 3px 12px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.3);
+  }
+  .ficha-body { padding: 20px; }
+  .ficha-empty {
+    padding: 48px 20px; text-align: center; color: #aaa;
+  }
+  .ficha-empty span { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+  .section-title {
+    font-size: 0.72rem; font-weight: 700; color: var(--verde);
+    text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--verde-suave); padding-bottom: 6px; margin-bottom: 12px; margin-top: 18px;
+  }
+  .section-title:first-child { margin-top: 0; }
+  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .fields-grid { grid-template-columns: 1fr; } }
+  .field { }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+  .field input, .field textarea, .field select {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--verde-suave);
+    border-radius: 8px; font-size: 0.9rem; background: var(--gris);
+    outline: none; transition: border 0.2s; color: var(--texto);
+    font-family: inherit;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--verde); background: white; }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* BOTONES */
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn {
+    padding: 11px 22px; border-radius: 10px; font-size: 0.9rem;
+    font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .btn-guardar { background: var(--verde); color: white; }
+  .btn-guardar:hover { background: #1a3d2e; transform: translateY(-1px); }
+  .btn-nuevo { background: var(--amarillo); color: var(--verde); border: 1.5px solid var(--verde); }
+  .btn-nuevo:hover { background: #fff0a0; }
+  .btn-limpiar { background: var(--gris); color: #666; border: 1.5px solid #ddd; }
+  .btn-limpiar:hover { background: #e0e0e0; }
+
+  /* GRÁFICA */
+  .chart-card {
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: var(--sombra); display: flex; flex-direction: column; align-items: center;
+  }
+  .chart-title { font-size: 0.8rem; font-weight: 700; color: var(--verde); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center; }
+  .chart-wrap { width: 100%; max-width: 220px; }
+  .chart-stats { width: 100%; margin-top: 16px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gris); font-size: 0.85rem; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #666; }
+  .stat-val { font-weight: 700; color: var(--verde); }
+  .pct-badge {
+    display: block; text-align: center; margin-top: 12px;
+    background: var(--verde); color: white; border-radius: 10px;
+    padding: 10px; font-size: 1.4rem; font-weight: 800;
+  }
+
+  /* CONTACTOS */
+  .contactos-card {
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: var(--sombra); margin-bottom: 20px;
+  }
+  .contactos-title {
+    font-size: 0.8rem; font-weight: 700; color: var(--verde);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+  }
+  .contacto-item {
+    background: var(--gris); border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+  }
+  .contacto-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--verde); color: white; display: flex;
+    align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0;
+  }
+  .contacto-info { flex: 1; min-width: 0; }
+  .contacto-nombre { font-weight: 600; font-size: 0.9rem; }
+  .contacto-cargo { font-size: 0.78rem; color: #888; }
+  .contacto-datos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .contacto-dato { font-size: 0.78rem; color: var(--verde); }
+  .no-contactos { text-align: center; color: #aaa; padding: 20px; font-style: italic; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white; border-radius: 18px; padding: 28px;
+    max-width: 420px; width: 92%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-icon { font-size: 3rem; margin-bottom: 12px; }
+  .modal h3 { font-size: 1.1rem; margin-bottom: 8px; }
+  .modal p { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--verde); color: white; padding: 14px 22px;
+    border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); transform: translateY(80px);
+    opacity: 0; transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ESTADO CONEXIÓN */
+  .config-banner {
+    background: #fff3cd; border: 1.5px solid #ffc107; border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 20px; font-size: 0.88rem; color: #856404;
+  }
+  .config-banner strong { display: block; margin-bottom: 4px; }
+
+  /* SENSO */
+  .senso-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 10px; }
+  .senso-item { background: var(--gris); border-radius: 8px; padding: 8px; text-align: center; }
+  .senso-grado { font-size: 0.68rem; color: #888; }
+  .senso-num { font-size: 1rem; font-weight: 700; color: var(--verde); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-icon">🏫</div>
+  <div>
+    <h1>CRM COLEGIOS</h1>
+    <p>Panel de gestión institucional</p>
+  </div>
+  <div class="header-badge" id="statusBadge">⚙️ Modo Demo</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon">💾</div>
+    <h3>Guardar cambios</h3>
+    <p>¿Deseas guardar los cambios en Google Sheets?</p>
+    <div class="modal-btns">
+      <button class="btn btn-limpiar" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-guardar" onclick="confirmarGuardar()">✅ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BANNER CONFIG -->
+  <div class="config-banner" id="configBanner">
+    <strong>⚙️ Modo demostración activo</strong>
+    Estás viendo datos de ejemplo. Para conectar tu Google Sheets real, sigue las instrucciones al final de esta página y pega tu API Key y Sheet ID en el código.
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-num" id="kpiColegios">–</div>
+      <div class="kpi-label">Colegios</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" id="kpiEstudiantes">–</div>
+      <div class="kpi-label">Estudiantes</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num" id="kpiDocentes">–</div>
+      <div class="kpi-label">Docentes</div>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-card">
+    <div class="search-label">🔍 Buscar colegio</div>
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="searchInput"
+        placeholder="Escribe el nombre del colegio..." autocomplete="off">
+      <span class="search-icon">🔍</span>
+      <div class="dropdown" id="dropdown" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- FICHA + GRÁFICA -->
+  <div class="main-grid">
+    <div class="ficha-card" id="fichaCard">
+      <div class="ficha-empty">
+        <span>🏫</span>
+        Busca un colegio para ver su información
+      </div>
+    </div>
+
+    <div>
+      <div class="chart-card">
+        <div class="chart-title">📊 Activación de Pines</div>
+        <div class="chart-wrap">
+          <canvas id="donaChart"></canvas>
+        </div>
+        <div class="chart-stats">
+          <div class="stat-row"><span class="stat-label">Estudiantes</span><span class="stat-val" id="statEst">–</span></div>
+          <div class="stat-row"><span class="stat-label">Pines activos</span><span class="stat-val" id="statPin">–</span></div>
+          <div class="pct-badge" id="statPct">–%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACTOS -->
+  <div class="contactos-card" id="contactosCard">
+    <div class="contactos-title">👥 Contactos del colegio</div>
+    <div id="contactosList"><div class="no-contactos">Selecciona un colegio para ver sus contactos</div></div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIGURACIÓN — CAMBIA ESTOS VALORES
+// ═══════════════════════════════════════════════
+const CONFIG = {
+  apiKey: "AIzaSyB0CGxtZ9XHFwyQDbXTK6bmLaItx-wTuCk",
+  sheetId: "1RCNyiHto-QRJjrdiDO3trl-MajouzlcCLnc1hMW0EIU",
+  rangeDatos: "Datos!A2:AB100",
+  rangeContactos: "contactos!A2:E200",
+  rangeSenso: "SENSO!B2:Q100"
+};
+
+// ═══════════════════════════════════════════════
+// DATOS DE DEMO (se reemplazan con Google Sheets)
+// ═══════════════════════════════════════════════
+const DEMO_DATOS = [
+  ["12027","13975","CENTRO COMERCIAL MADRE ELISA RONCALLO","San Cristobal Sur - Bogotá","AA","BOGOTÁ SUR","Jose Albeiro Vega Medina","3001234567","jose@email.com","admin.coach-12027","santillana2025","admin.back-12027","santillana2024","1 a 5 Lenguaje + cartilla\n1 a 11 SET XXI\n6 a 11 Activa (2 Tomos)","381","154","22","Coach","","","CRISTIAN CAMILO MONRROY","","","","","","Directo","Premium"],
+  ["2211","15297","COLEGIO NTRA SEÑORA DEL CARMEN","Fontibón - Bogotá","AAA","BOGOTÁ SUR","Yerli Andrea Echavarría","3109876543","yerli@email.com","admin.col-2211","santillana2026","","","1 a 5 (Biolo - Mate)\n6 a 9 Desarrollo de competencias\nCloudlabs 8 y 9","210","","18","N/A","","","","","","","","","Aliado","Estándar"],
+  ["25869","18000","COLEGIO MAYOR DEL QUIROGA","Bogotá","AA","BOGOTÁ NORTE","Carlos Pérez","3155559999","carlos@email.com","admin.quiroga","pass2025","","","Matemáticas 1-11\nCiencias Naturales","320","95","25","Andrés López","andres@ingles.com","3001112233","","","","","","","Directo","Premium"],
+  ["2129","12500","LIC PSICOPEDAGÓGICO BOLIVIA","Bogotá","A","BOGOTÁ SUR","María Torres","3208887766","maria@email.com","admin.bolivia","boliviapass","","","Plan Lector 1-11","180","","15","","","","","","","","","","Aliado","Estándar"],
+  ["22840","19999","COL JUAN RULFO","Bogotá","AA","BOGOTÁ OCCIDENTE","Pedro Jiménez","3114443322","pedro@email.com","admin.rulfo","rulfo2025","","","Digital House 9-11\nRobótica","455","200","30","Sofía R.","sofia@ingles.com","3009998877","","","","","","","Directo","Premium"]
+];
+
+const DEMO_CONTACTOS = [
+  ["CENTRO COMERCIAL MADRE ELISA RONCALLO","Coordinador","Hanithze Gacha","coordinacion@gmail.com","3184633999"],
+  ["CENTRO COMERCIAL MADRE ELISA RONCALLO","Docente","Luisa Huerfano","luisa@col.com","3133661184"],
+  ["COLEGIO NTRA SEÑORA DEL CARMEN","Rector","Sor Verónica Ospitia","rectoria@carmen.com","3204998058"],
+  ["COLEGIO NTRA SEÑORA DEL CARMEN","Coordinador","Sandra Ariza","coordinacion@carmen.com","3212006450"],
+  ["COLEGIO MAYOR DEL QUIROGA","Rector","Alberto Guzmán","rector@quiroga.edu.co","3001230000"],
+  ["COL JUAN RULFO","Coordinador","Liliana Mora","coord@rulfo.edu.co","3120004455"]
+];
+
+// ═══════════════════════════════════════════════
+// ESTADO DE LA APP
+// ═══════════════════════════════════════════════
+let datos = [];
+let contactos = [];
+let colegioActual = null;
+let chartInstance = null;
+let modoDemo = true;
+
+// Índices columna hoja Datos
+const C = {
+  id:0, crm:1, nombre:2, ciudad:3, tipo:4, regional:5,
+  comercial:6, celCom:7, correoCom:8,
+  usuAdmin:9, passAdmin:10, usuTM:11, passTM:12,
+  contenidos:13, estudiantes:14, pinActivo:15, docentes:16,
+  asesorIng:17, correoIng:18, telIng:19,
+  asesorRob:20, correoRob:21, telRob:22,
+  asesorDH:23, correoDH:24, telDH:25,
+  canal:26, linea:27
+};
+
+// ═══════════════════════════════════════════════
+// INICIALIZACIÓN
+// ═══════════════════════════════════════════════
+async function init() {
+  if (CONFIG.apiKey !== "TU_API_KEY_AQUI") {
+    modoDemo = false;
+    await cargarDesdeSheets();
+  } else {
+    datos = DEMO_DATOS;
+    contactos = DEMO_CONTACTOS;
+    actualizarKPIs();
+  }
+  initBuscador();
+  initChart();
+}
+
+// ═══════════════════════════════════════════════
+// GOOGLE SHEETS — LEER
+// ═══════════════════════════════════════════════
+async function cargarDesdeSheets() {
+  try {
+    const base = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/`;
+    const key = `?key=${CONFIG.apiKey}`;
+    const [rDatos, rContactos] = await Promise.all([
+      fetch(base + encodeURIComponent(CONFIG.rangeDatos) + key).then(r=>r.json()),
+      fetch(base + encodeURIComponent(CONFIG.rangeContactos) + key).then(r=>r.json())
+    ]);
+    datos = (rDatos.values || []).filter(r => r[2]);
+    contactos = rContactos.values || [];
+    document.getElementById("configBanner").style.display = "none";
+    document.getElementById("statusBadge").textContent = "✅ Conectado";
+    document.getElementById("statusBadge").style.background = "rgba(255,255,255,0.25)";
+    actualizarKPIs();
+  } catch(e) {
+    mostrarToast("❌ Error al conectar con Google Sheets", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════
+// GOOGLE SHEETS — ESCRIBIR
+// ═══════════════════════════════════════════════
+async function guardarEnSheets(rowIndex, fila) {
+  if (modoDemo) {
+    datos[rowIndex] = fila;
+    mostrarToast("✅ Guardado en demo (no persiste)");
+    return true;
+  }
+  try {
+    const row = rowIndex + 2; // +2 porque empieza en fila 2
+    const range = `Datos!A${row}:AB${row}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW&key=${CONFIG.apiKey}`;
+    // Para escribir necesitas OAuth, aquí usamos el endpoint con token de usuario
+    // Ver instrucciones abajo para implementación completa
+    const res = await fetch(url.replace('?key=','?access_token=').replace(CONFIG.apiKey, await getAccessToken()), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [fila] })
+    });
+    if (res.ok) {
+      datos[rowIndex] = fila;
+      mostrarToast("✅ Guardado en Google Sheets");
+      return true;
+    }
+  } catch(e) {
+    mostrarToast("❌ Error al guardar", "error");
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BUSCADOR
+// ═══════════════════════════════════════════════
+function initBuscador() {
+  const input = document.getElementById("searchInput");
+  const dropdown = document.getElementById("dropdown");
+
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toUpperCase();
+    if (!q) { dropdown.style.display = "none"; return; }
+    const matches = datos.filter(r => r[C.nombre].toUpperCase().includes(q));
+    if (!matches.length) {
+      dropdown.innerHTML = '<div class="no-results">Sin coincidencias</div>';
+    } else {
+      dropdown.innerHTML = matches.map((r,i) => {
+        const nom = r[C.nombre];
+        const hi = nom.replace(new RegExp(q, "gi"), m => `<mark>${m}</mark>`);
+        const idx = datos.indexOf(r);
+        return `<div class="dropdown-item" onclick="seleccionarColegio(${idx})">${hi}</div>`;
+      }).join("");
+    }
+    dropdown.style.display = "block";
+  });
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".search-wrap")) dropdown.style.display = "none";
+  });
+}
+
+// ═══════════════════════════════════════════════
+// SELECCIONAR COLEGIO
+// ═══════════════════════════════════════════════
+function seleccionarColegio(idx) {
+  colegioActual = idx;
+  const r = datos[idx];
+  document.getElementById("searchInput").value = r[C.nombre];
+  document.getElementById("dropdown").style.display = "none";
+  renderFicha(r, idx);
+  renderContactos(r[C.nombre]);
+  actualizarChart(r);
+}
+
+// ═══════════════════════════════════════════════
+// FICHA DEL COLEGIO
+// ═══════════════════════════════════════════════
+function renderFicha(r, idx) {
+  const v = (i) => r[i] || "";
+  document.getElementById("fichaCard").innerHTML = `
+    <div class="ficha-header">
+      <div>
+        <div class="ficha-nombre">${v(C.nombre)}</div>
+        <div style="font-size:0.8rem;opacity:0.8;margin-top:4px">${v(C.ciudad)} · ID: ${v(C.id)}</div>
+      </div>
+      <div class="ficha-tag">${v(C.tipo) || "–"}</div>
+    </div>
+    <div class="ficha-body">
+
+      <div class="section-title">📋 Identificación</div>
+      <div class="fields-grid">
+        <div class="field"><label>ID</label><input id="f_id" value="${v(C.id)}" readonly style="background:#e8ede9;cursor:not-allowed"></div>
+        <div class="field"><label>CRM</label><input id="f_crm" value="${v(C.crm)}" readonly style="background:#e8ede9;cursor:not-allowed"></div>
+        <div class="field full"><label>Nombre del Colegio</label><input id="f_nombre" value="${v(C.nombre)}"></div>
+        <div class="field"><label>Ciudad</label><input id="f_ciudad" value="${v(C.ciudad)}"></div>
+        <div class="field"><label>Tipo</label><input id="f_tipo" value="${v(C.tipo)}"></div>
+        <div class="field"><label>Regional</label><input id="f_regional" value="${v(C.regional)}"></div>
+        <div class="field"><label>Canal de Venta</label><input id="f_canal" value="${v(C.canal)}"></div>
+        <div class="field"><label>Línea</label><input id="f_linea" value="${v(C.linea)}"></div>
+      </div>
+
+      <div class="section-title">💼 Comercial</div>
+      <div class="fields-grid">
+        <div class="field"><label>Comercial</label><input id="f_com" value="${v(C.comercial)}"></div>
+        <div class="field"><label>Celular</label><input id="f_celCom" value="${v(C.celCom)}"></div>
+        <div class="field full"><label>Correo Comercial</label><input id="f_correoCom" value="${v(C.correoCom)}"></div>
+      </div>
+
+      <div class="section-title">🔐 Credenciales</div>
+      <div class="fields-grid">
+        <div class="field"><label>Usuario Admin</label><input id="f_usuAdmin" value="${v(C.usuAdmin)}"></div>
+        <div class="field"><label>Contraseña</label><input id="f_passAdmin" value="${v(C.passAdmin)}"></div>
+        <div class="field"><label>Usuario TM</label><input id="f_usuTM" value="${v(C.usuTM)}"></div>
+        <div class="field"><label>Contraseña TM</label><input id="f_passTM" value="${v(C.passTM)}"></div>
+      </div>
+
+      <div class="section-title">📊 Estadísticas</div>
+      <div class="fields-grid">
+        <div class="field"><label>Estudiantes</label><input id="f_est" type="number" value="${v(C.estudiantes)}"></div>
+        <div class="field"><label>Activo PIN</label><input id="f_pin" type="number" value="${v(C.pinActivo)}"></div>
+        <div class="field"><label>N° Docentes</label><input id="f_doc" type="number" value="${v(C.docentes)}"></div>
+      </div>
+
+      <div class="section-title">🌍 Asesores</div>
+      <div class="fields-grid">
+        <div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="${v(C.asesorIng)}"></div>
+        <div class="field"><label>Correo Inglés</label><input id="f_cIng" value="${v(C.correoIng)}"></div>
+        <div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="${v(C.telIng)}"></div>
+        <div class="field"><label>Asesor Robótica</label><input id="f_aRob" value="${v(C.asesorRob)}"></div>
+        <div class="field"><label>Correo Robótica</label><input id="f_cRob" value="${v(C.correoRob)}"></div>
+        <div class="field"><label>Tel. Robótica</label><input id="f_tRob" value="${v(C.telRob)}"></div>
+        <div class="field"><label>Asesor Digital House</label><input id="f_aDH" value="${v(C.asesorDH)}"></div>
+        <div class="field"><label>Correo Digital House</label><input id="f_cDH" value="${v(C.correoDH)}"></div>
+        <div class="field"><label>Tel. Digital House</label><input id="f_tDH" value="${v(C.telDH)}"></div>
+      </div>
+
+      <div class="section-title">📚 Contenidos</div>
+      <div class="fields-grid">
+        <div class="field full"><label>Contenidos</label><textarea id="f_cont">${v(C.contenidos)}</textarea></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-guardar" onclick="abrirModal()">💾 Guardar cambios</button>
+        <button class="btn btn-nuevo" onclick="nuevoColegio()">➕ Nuevo colegio</button>
+        <button class="btn btn-limpiar" onclick="limpiarFicha()">🧹 Limpiar</button>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// GUARDAR
+// ═══════════════════════════════════════════════
+function abrirModal() {
+  document.getElementById("modalOverlay").classList.add("active");
+}
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("active");
+}
+async function confirmarGuardar() {
+  closeModal();
+  if (colegioActual === null) return;
+  const g = id => document.getElementById(id)?.value || "";
+  const fila = [
+    g("f_id"), g("f_crm"), g("f_nombre"), g("f_ciudad"), g("f_tipo"), g("f_regional"),
+    g("f_com"), g("f_celCom"), g("f_correoCom"),
+    g("f_usuAdmin"), g("f_passAdmin"), g("f_usuTM"), g("f_passTM"),
+    g("f_cont"), g("f_est"), g("f_pin"), g("f_doc"),
+    g("f_aIng"), g("f_cIng"), g("f_tIng"),
+    g("f_aRob"), g("f_cRob"), g("f_tRob"),
+    g("f_aDH"), g("f_cDH"), g("f_tDH"),
+    g("f_canal"), g("f_linea")
+  ];
+  await guardarEnSheets(colegioActual, fila);
+  actualizarKPIs();
+  actualizarChart(fila);
+}
+
+// ═══════════════════════════════════════════════
+// NUEVO COLEGIO
+// ═══════════════════════════════════════════════
+function nuevoColegio() {
+  colegioActual = datos.length;
+  const fila = Array(28).fill("");
+  datos.push(fila);
+  renderFicha(fila, colegioActual);
+  document.getElementById("searchInput").value = "";
+  mostrarToast("📝 Nuevo colegio — completa los datos y guarda");
+}
+
+function limpiarFicha() {
+  document.getElementById("fichaCard").innerHTML = '<div class="ficha-empty"><span>🏫</span>Busca un colegio para ver su información</div>';
+  document.getElementById("searchInput").value = "";
+  colegioActual = null;
+  actualizarChart(null);
+  renderContactos(null);
+}
+
+// ═══════════════════════════════════════════════
+// CONTACTOS
+// ═══════════════════════════════════════════════
+function renderContactos(nombreColegio) {
+  const list = document.getElementById("contactosList");
+  if (!nombreColegio) {
+    list.innerHTML = '<div class="no-contactos">Selecciona un colegio para ver sus contactos</div>';
+    return;
+  }
+  const nom = nombreColegio.trim().toUpperCase();
+  const cols = contactos.filter(c => (c[0]||"").trim().toUpperCase() === nom);
+  if (!cols.length) {
+    list.innerHTML = '<div class="no-contactos">Sin contactos registrados para este colegio</div>';
+    return;
+  }
+  list.innerHTML = cols.map(c => {
+    const ini = (c[2]||"?")[0].toUpperCase();
+    return `
+      <div class="contacto-item">
+        <div class="contacto-avatar">${ini}</div>
+        <div class="contacto-info">
+          <div class="contacto-nombre">${c[2]||"–"}</div>
+          <div class="contacto-cargo">${c[1]||"–"}</div>
+          <div class="contacto-datos">
+            ${c[3] ? `<span class="contacto-dato">✉️ ${c[3]}</span>` : ""}
+            ${c[4] ? `<span class="contacto-dato">📞 ${c[4]}</span>` : ""}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════════
+// GRÁFICA
+// ═══════════════════════════════════════════════
+function initChart() {
+  const ctx = document.getElementById("donaChart").getContext("2d");
+  chartInstance = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Activos", "Por activar"],
+      datasets: [{ data: [0, 1], backgroundColor: ["#356854","#D9E2DE"], borderWidth: 0 }]
+    },
+    options: {
+      cutout: "70%", plugins: { legend: { display: false } },
+      animation: { duration: 600 }
+    }
+  });
+}
+
+function actualizarChart(r) {
+  if (!r) {
+    chartInstance.data.datasets[0].data = [0, 1];
+    chartInstance.update();
+    document.getElementById("statEst").textContent = "–";
+    document.getElementById("statPin").textContent = "–";
+    document.getElementById("statPct").textContent = "–%";
+    return;
+  }
+  const est = parseInt(r[C.estudiantes]) || 0;
+  const pin = parseInt(r[C.pinActivo]) || 0;
+  const restante = Math.max(0, est - pin);
+  chartInstance.data.datasets[0].data = est > 0 ? [pin, restante] : [0, 1];
+  chartInstance.update();
+  document.getElementById("statEst").textContent = est || "–";
+  document.getElementById("statPin").textContent = pin || "–";
+  const pct = est > 0 ? Math.round((pin/est)*100) : 0;
+  document.getElementById("statPct").textContent = `${pct}%`;
+}
+
+// ═══════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════
+function actualizarKPIs() {
+  document.getElementById("kpiColegios").textContent = datos.length;
+  const totEst = datos.reduce((s,r) => s + (parseInt(r[C.estudiantes])||0), 0);
+  const totDoc = datos.reduce((s,r) => s + (parseInt(r[C.docentes])||0), 0);
+  document.getElementById("kpiEstudiantes").textContent = totEst > 0 ? totEst.toLocaleString() : "–";
+  document.getElementById("kpiDocentes").textContent = totDoc > 0 ? totDoc.toLocaleString() : "–";
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function mostrarToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ═══════════════════════════════════════════════
+// ARRANCAR
+// ═══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
