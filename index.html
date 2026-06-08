@@ -82,11 +82,13 @@
   @media(max-width:500px){.fields-grid{grid-template-columns:1fr;}}
   .field.full{grid-column:1/-1;}
   .field label{font-size:0.68rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;}
-  .field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--azul-suave);border-radius:8px;font-size:0.87rem;background:var(--gris);outline:none;transition:all 0.2s;color:var(--texto);font-family:inherit;pointer-events:none;}
+  .field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--azul-suave);border-radius:8px;font-size:0.87rem;background:var(--gris);outline:none;transition:all 0.2s;color:var(--texto);font-family:inherit;pointer-events:none;user-select:text;-webkit-user-select:text;}
   .field input.editable,.field textarea.editable{pointer-events:all;background:white;border-color:var(--azul-claro);}
   .field input.editable:focus,.field textarea.editable:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,0.1);}
-  .field input[readonly]{background:#EEF2F7;cursor:not-allowed;color:#666;}
+  .field input[readonly]{background:#EEF2F7;cursor:text;color:#666;pointer-events:all;user-select:text;-webkit-user-select:text;}
   .field textarea{resize:none;min-height:60px;overflow:hidden;}
+  .field-row{display:flex;align-items:center;gap:6px;}
+  .field-row input,.field-row textarea{flex:1;}
 
   /* CONTACTO */
   .contact-card{background:var(--gris);border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--azul-suave);}
@@ -445,44 +447,82 @@ function renderFicha(r, idx) {
       '</div></div>';
   }).join("") : '<div class="no-contactos">Sin contactos registrados</div>';
 
+  // campo con botón copiar
+  function fc(label, id, val, type) {
+    type = type || "text";
+    var inputTag = '<input id="' + id + '" type="' + type + '" value="' + val + '">';
+    return '<div class="field"><label>' + label + '</label>' +
+      '<div class="field-row">' + inputTag +
+      '<button class="icon-btn copy" title="Copiar" onclick="copiarTexto(\'' + val.replace(/'/g,"\\'") + '\')">📋</button>' +
+      '</div></div>';
+  }
+  // campo sin botón copiar
+  function fs(label, id, val, type, readonly) {
+    type = type || "text";
+    var extra = readonly ? " readonly" : "";
+    return '<div class="field"><label>' + label + '</label><input id="' + id + '" type="' + type + '" value="' + val + '"' + extra + '></div>';
+  }
+
   document.getElementById("fichaCard").innerHTML =
     '<div class="ficha-header">' +
       '<div><div class="ficha-nombre">' + v(C.nombre) + '</div><div class="ficha-sub">' + v(C.ciudad) + ' · ID: ' + v(C.id) + '</div></div>' +
       '<div class="ficha-tag">' + (v(C.tipo)||"–") + '</div>' +
     '</div>' +
     '<div class="ficha-body">' +
+
       '<div class="sec-title">📋 Identificación</div>' +
       '<div class="fields-grid">' +
-        '<div class="field"><label>ID</label><input value="' + v(C.id) + '" readonly></div>' +
-        '<div class="field"><label>CRM</label><input value="' + v(C.crm) + '" readonly></div>' +
+        fc("ID","f_id", v(C.id)) +
+        fc("CRM","f_crm", v(C.crm)) +
         '<div class="field full"><label>Nombre del Colegio</label><input id="f_nombre" value="' + v(C.nombre) + '"></div>' +
-        '<div class="field"><label>Ciudad</label><input id="f_ciudad" value="' + v(C.ciudad) + '"></div>' +
-        '<div class="field"><label>Tipo</label><input id="f_tipo" value="' + v(C.tipo) + '"></div>' +
-        '<div class="field"><label>Regional</label><input id="f_regional" value="' + v(C.regional) + '"></div>' +
-        '<div class="field"><label>Canal de Venta</label><input id="f_canal" value="' + v(C.canal) + '"></div>' +
-        '<div class="field"><label>Línea</label><input id="f_linea" value="' + v(C.linea) + '"></div>' +
-        '<div class="field"><label>Estudiantes</label><input id="f_est" type="number" value="' + v(C.estudiantes) + '"></div>' +
-        '<div class="field"><label>Activo PIN</label><input id="f_pin" type="number" value="' + v(C.pinActivo) + '"></div>' +
-        '<div class="field"><label>N° Docentes</label><input id="f_doc" type="number" value="' + v(C.docentes) + '"></div>' +
+        fs("Ciudad","f_ciudad", v(C.ciudad)) +
+        fs("Tipo","f_tipo", v(C.tipo)) +
+        fs("Regional","f_regional", v(C.regional)) +
+        fs("Canal de Venta","f_canal", v(C.canal)) +
+        fs("Línea","f_linea", v(C.linea)) +
+        fs("Estudiantes","f_est", v(C.estudiantes),"number") +
+        fs("Activo PIN","f_pin", v(C.pinActivo),"number") +
+        fs("N° Docentes","f_doc", v(C.docentes),"number") +
       '</div>' +
+
       '<div class="sec-title">👥 Contactos del Colegio</div>' +
       contactosHTML +
+
       '<div class="sec-title">📚 Contenidos</div>' +
-      '<div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">' + v(C.contenidos) + '</textarea></div>' +
+      '<div class="field" style="grid-column:1/-1"><label>Contenidos</label>' +
+      '<textarea id="f_cont" oninput="autoResize(this)" style="width:100%">' + v(C.contenidos) + '</textarea></div>' +
+
       '<div class="sec-title">💼 Datos Comercial</div>' +
       '<div class="field"><label>Comercial</label><input id="f_com" value="' + v(C.comercial) + '"></div>' +
-      '<div class="field"><label>Celular</label><input id="f_celCom" value="' + v(C.celCom) + '"></div>' +
-      '<div class="field"><label>Correo</label><input id="f_correoCom" value="' + v(C.correoCom) + '"></div>' +
+      '<div class="field"><label>Celular</label>' +
+        '<div class="field-row"><input id="f_celCom" value="' + v(C.celCom) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.celCom) + '\')">📋</button></div>' +
+      '</div>' +
+      '<div class="field"><label>Correo</label>' +
+        '<div class="field-row"><input id="f_correoCom" value="' + v(C.correoCom) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.correoCom) + '\')">📋</button></div>' +
+      '</div>' +
+
       '<div class="sec-title">🌍 Asesores</div>' +
       '<div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="' + v(C.asesorIng) + '"></div>' +
-      '<div class="field"><label>Correo Inglés</label><input id="f_cIng" value="' + v(C.correoIng) + '"></div>' +
-      '<div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="' + v(C.telIng) + '"></div>' +
+      '<div class="field"><label>Correo Inglés</label>' +
+        '<div class="field-row"><input id="f_cIng" value="' + v(C.correoIng) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.correoIng) + '\')">📋</button></div>' +
+      '</div>' +
+      '<div class="field"><label>Tel. Inglés</label>' +
+        '<div class="field-row"><input id="f_tIng" value="' + v(C.telIng) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.telIng) + '\')">📋</button></div>' +
+      '</div>' +
       '<div class="field"><label>Asesor Robótica</label><input id="f_aRob" value="' + v(C.asesorRob) + '"></div>' +
-      '<div class="field"><label>Correo Robótica</label><input id="f_cRob" value="' + v(C.correoRob) + '"></div>' +
-      '<div class="field"><label>Tel. Robótica</label><input id="f_tRob" value="' + v(C.telRob) + '"></div>' +
+      '<div class="field"><label>Correo Robótica</label>' +
+        '<div class="field-row"><input id="f_cRob" value="' + v(C.correoRob) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.correoRob) + '\')">📋</button></div>' +
+      '</div>' +
+      '<div class="field"><label>Tel. Robótica</label>' +
+        '<div class="field-row"><input id="f_tRob" value="' + v(C.telRob) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.telRob) + '\')">📋</button></div>' +
+      '</div>' +
       '<div class="field"><label>Asesor Digital House</label><input id="f_aDH" value="' + v(C.asesorDH) + '"></div>' +
-      '<div class="field"><label>Correo Digital House</label><input id="f_cDH" value="' + v(C.correoDH) + '"></div>' +
-      '<div class="field"><label>Tel. Digital House</label><input id="f_tDH" value="' + v(C.telDH) + '"></div>' +
+      '<div class="field"><label>Correo Digital House</label>' +
+        '<div class="field-row"><input id="f_cDH" value="' + v(C.correoDH) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.correoDH) + '\')">📋</button></div>' +
+      '</div>' +
+      '<div class="field"><label>Tel. Digital House</label>' +
+        '<div class="field-row"><input id="f_tDH" value="' + v(C.telDH) + '"><button class="icon-btn copy" onclick="copiarTexto(\'' + v(C.telDH) + '\')">📋</button></div>' +
+      '</div>' +
     '</div>';
 
   if (modoEdicion) habilitarCampos(true);
