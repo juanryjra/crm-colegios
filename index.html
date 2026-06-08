@@ -314,7 +314,8 @@ const CONFIG = {
   apiKey: "AIzaSyB0CGxtZ9XHFwyQDbXTK6bmLaItx-wTuCk",
   sheetId: "1RCNyiHto-QRJjrdiDO3trl-MajouzlcCLnc1hMW0EIU",
   rangeDatos: "Datos!A2:AB100",
-  rangeContactos: "contactos!A2:E200"
+  rangeContactos: "contactos!A2:E200",
+  scriptUrl: "https://script.google.com/macros/s/AKfycbya32D1TEnKP3zvzQaEKKNBtYtXBuWwEPFpqJrR8g0pwOJiRJofcaNzDJO1JXRxa7in/exec"
 };
 const SHEETS_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}`;
 
@@ -585,11 +586,28 @@ async function confirmarGuardar(){
     g("f_aDH"),g("f_cDH"),g("f_tDH"),
     g("f_canal"),g("f_linea")
   ];
+  // Guardar en memoria
   datos[colegioActual]=fila;
   actualizarChart(fila);
   renderCredenciales(fila);
-  mostrarToast("✅ Cambios guardados","ok");
   toggleEdicion();
+
+  // Guardar en Google Sheets via Apps Script
+  mostrarToast("⏳ Guardando en Google Sheets...");
+  try {
+    const resp = await fetch(CONFIG.scriptUrl, {
+      method: "POST",
+      body: JSON.stringify({ fila: colegioActual, valores: fila })
+    });
+    const result = await resp.json();
+    if (result.success) {
+      mostrarToast("✅ Guardado en Google Sheets","ok");
+    } else {
+      mostrarToast("⚠️ Error al guardar: " + result.error,"error");
+    }
+  } catch(err) {
+    mostrarToast("❌ No se pudo conectar con Google Sheets","error");
+  }
 }
 
 // ══════════════════════════════════
