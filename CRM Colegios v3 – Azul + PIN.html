@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Colegios</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --azul: #1565C0; --azul2: #0D47A1; --azul3: #1976D2;
+    --azul-claro: #42A5F5; --azul-suave: #BBDEFB; --azul-fondo: #E3F2FD;
+    --azul-oscuro: #0A2A5E; --blanco: #fff;
+    --gris: #F5F7FA; --texto: #1a2340;
+    --sombra: 0 4px 24px rgba(21,101,192,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #EBF3FB; color: var(--texto); min-height: 100vh; }
+
+  /* ── PIN OVERLAY ── */
+  .pin-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #0D47A1 0%, #1565C0 60%, #42A5F5 100%);
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+  }
+  .pin-box {
+    background: white; border-radius: 24px; padding: 40px 36px;
+    text-align: center; width: 320px; box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  }
+  .pin-logo { font-size: 3rem; margin-bottom: 10px; }
+  .pin-title { font-size: 1.3rem; font-weight: 800; color: var(--azul2); margin-bottom: 4px; }
+  .pin-sub { font-size: 0.82rem; color: #888; margin-bottom: 28px; }
+  .pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 28px; }
+  .pin-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2.5px solid var(--azul-suave); background: white; transition: all 0.2s;
+  }
+  .pin-dot.filled { background: var(--azul); border-color: var(--azul); }
+  .pin-dot.error { background: #e53935; border-color: #e53935; }
+  .pin-numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .pin-key {
+    padding: 16px; border-radius: 12px; border: none; font-size: 1.2rem; font-weight: 700;
+    background: var(--azul-fondo); color: var(--azul2); cursor: pointer; transition: all 0.15s;
+  }
+  .pin-key:hover { background: var(--azul); color: white; transform: scale(1.05); }
+  .pin-key.del { background: #FFF3E0; color: #E65100; }
+  .pin-key.del:hover { background: #E65100; color: white; }
+  .pin-error { color: #e53935; font-size: 0.82rem; margin-top: 14px; font-weight: 600; min-height: 20px; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--azul2) 0%, var(--azul3) 100%);
+    color: white; padding: 14px 24px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 16px rgba(13,71,161,0.25);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-icon { font-size: 1.8rem; }
+  .header-text h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px; }
+  .header-text p { font-size: 0.75rem; opacity: 0.75; }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .hdr-btn {
+    width: 40px; height: 40px; border-radius: 10px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    transition: all 0.2s; background: rgba(255,255,255,0.15); color: white;
+  }
+  .hdr-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.08); }
+  .hdr-btn.edit-active { background: #FFF176; color: #1a2340; }
+  .hdr-btn.save-active { background: #69F0AE; color: #1a2340; }
+  .hdr-badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; border: 1px solid rgba(255,255,255,0.25); }
+  .edit-banner {
+    background: #FFF9C4; border-bottom: 2px solid #FFC107;
+    padding: 8px 24px; font-size: 0.82rem; font-weight: 600; color: #795548;
+    display: none; align-items: center; gap: 8px; justify-content: center;
+  }
+  .edit-banner.show { display: flex; }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px; }
+
+  /* ── BUSCADOR ── */
+  .search-card { background: white; border-radius: 16px; padding: 18px 20px; box-shadow: var(--sombra); margin-bottom: 20px; }
+  .search-label { font-size: 0.72rem; font-weight: 800; color: var(--azul); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 100%; padding: 13px 48px 13px 18px;
+    border: 2px solid var(--azul-suave); border-radius: 12px;
+    font-size: 0.98rem; outline: none; transition: border 0.2s; background: var(--gris);
+  }
+  .search-input:focus { border-color: var(--azul); background: white; }
+  .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; pointer-events:none; }
+  .dropdown {
+    position: absolute; top: calc(100%+4px); left:0; right:0;
+    background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+    z-index: 200; max-height: 250px; overflow-y: auto; border: 1px solid var(--azul-suave);
+  }
+  .dropdown-item { padding: 11px 16px; cursor: pointer; border-bottom: 1px solid var(--gris); display: flex; align-items: center; gap: 10px; transition: background 0.15s; font-size: 0.92rem; }
+  .dropdown-item:hover { background: var(--azul-fondo); }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item mark { background: #fff176; border-radius: 3px; padding: 0 2px; }
+  .dropdown-name { flex: 1; }
+  .no-results { padding: 14px 18px; color: #888; font-style: italic; }
+
+  /* ── GRID ── */
+  .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 20px; }
+  @media(max-width:800px){ .main-grid{grid-template-columns:1fr;} }
+
+  /* ── FICHA ── */
+  .ficha-card { background: white; border-radius: 16px; box-shadow: var(--sombra); overflow: hidden; }
+  .ficha-header {
+    background: linear-gradient(135deg, var(--azul2), var(--azul3));
+    color: white; padding: 18px 22px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .ficha-nombre { font-size: 1.05rem; font-weight: 800; }
+  .ficha-sub { font-size: 0.78rem; opacity: 0.8; margin-top: 3px; }
+  .ficha-tag { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 12px; font-size: 0.72rem; border: 1px solid rgba(255,255,255,0.3); flex-shrink:0; }
+  .ficha-body { padding: 20px; }
+  .ficha-empty { padding: 48px 20px; text-align: center; color: #aaa; }
+  .ficha-empty span { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+  .sec-title { font-size: 0.7rem; font-weight: 800; color: var(--azul); text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 2px solid var(--azul-suave); padding-bottom: 6px; margin-bottom: 14px; margin-top: 22px; display: flex; align-items: center; gap: 6px; }
+  .sec-title:first-child { margin-top: 0; }
+
+  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:500px){ .fields-grid{grid-template-columns:1fr;} }
+  .field.full { grid-column:1/-1; }
+  .field label { font-size: 0.68rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+  .field input, .field textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--azul-suave);
+    border-radius: 8px; font-size: 0.87rem; background: var(--gris);
+    outline: none; transition: all 0.2s; color: var(--texto); font-family: inherit;
+    pointer-events: none;
+  }
+  .field input.editable, .field textarea.editable { pointer-events: all; background: white; border-color: var(--azul-claro); }
+  .field input.editable:focus, .field textarea.editable:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
+  .field input[readonly] { background: #EEF2F7; cursor: not-allowed; color: #666; }
+  .field textarea { resize: vertical; min-height: 90px; }
+
+  /* ── CONTACTO CARD ── */
+  .contact-card {
+    background: var(--gris); border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 10px; border: 1px solid var(--azul-suave);
+  }
+  .contact-card:last-child { margin-bottom: 0; }
+  .contact-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .contact-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--azul); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; flex-shrink:0; }
+  .contact-name { font-weight: 700; font-size: 0.9rem; color: var(--azul2); }
+  .contact-cargo { font-size: 0.75rem; color: #888; }
+  .contact-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:500px){ .contact-fields{grid-template-columns:1fr;} }
+  .contact-field { background: white; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; border: 1px solid var(--azul-suave); }
+  .contact-field-info { flex:1; min-width:0; }
+  .contact-field-label { font-size: 0.62rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+  .contact-field-val { font-size: 0.83rem; font-weight: 600; color: var(--texto); word-break: break-all; }
+  .no-contactos { text-align: center; color: #aaa; padding: 20px; font-style: italic; font-size: 0.85rem; }
+
+  /* ── ICON BTN ── */
+  .icon-btn { width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: all 0.15s; flex-shrink:0; }
+  .icon-btn.copy { background: var(--azul-fondo); color: var(--azul); }
+  .icon-btn.copy:hover { background: var(--azul); color: white; transform: scale(1.1); }
+
+  /* ── COLUMNA DERECHA ── */
+  .right-col { display: flex; flex-direction: column; gap: 20px; }
+  .cred-card { background: white; border-radius: 16px; padding: 18px; box-shadow: var(--sombra); }
+  .cred-title { font-size: 0.7rem; font-weight: 800; color: var(--azul); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .cred-row { background: var(--gris); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--azul-suave); }
+  .cred-row:last-child { margin-bottom:0; }
+  .cred-info { flex:1; min-width:0; }
+  .cred-label { font-size: 0.65rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cred-val { font-size: 0.87rem; font-weight: 600; color: var(--texto); margin-top: 2px; word-break: break-all; }
+  .cred-val.hidden { letter-spacing: 3px; color: #aaa; }
+  .cred-actions { display: flex; gap: 5px; }
+  .cred-empty { text-align: center; color: #aaa; padding: 14px; font-style: italic; font-size: 0.82rem; }
+
+  /* ── GRÁFICA ── */
+  .chart-card { background: white; border-radius: 16px; padding: 18px; box-shadow: var(--sombra); display: flex; flex-direction: column; align-items: center; }
+  .chart-title { font-size: 0.7rem; font-weight: 800; color: var(--azul); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; text-align: center; }
+  .chart-wrap { width: 100%; max-width: 190px; }
+  .chart-stats { width: 100%; margin-top: 14px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--gris); font-size: 0.82rem; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #666; }
+  .stat-val { font-weight: 700; color: var(--azul); }
+  .pct-badge { display: block; text-align: center; margin-top: 10px; background: linear-gradient(135deg,var(--azul2),var(--azul3)); color: white; border-radius: 10px; padding: 10px; font-size: 1.4rem; font-weight: 800; }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; border-radius: 18px; padding: 28px; max-width: 400px; width: 92%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal-icon { font-size: 3rem; margin-bottom: 12px; }
+  .modal h3 { font-size: 1.1rem; margin-bottom: 8px; }
+  .modal p { color: #666; font-size: 0.88rem; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+  .btn { padding: 10px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+  .btn-guardar { background: var(--azul); color: white; }
+  .btn-guardar:hover { background: var(--azul2); }
+  .btn-limpiar { background: var(--gris); color: #666; border: 1.5px solid #ddd; }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--azul); color: white; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 0.87rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0; transition: all 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: #c0392b; }
+  .toast.ok { background: #2e7d32; }
+</style>
+</head>
+<body>
+
+<!-- ── PIN ── -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-logo">🔒</div>
+    <div class="pin-title">CRM Colegios</div>
+    <div class="pin-sub">Ingresa tu PIN de 4 dígitos</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-numpad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del" onclick="pinKey('C')">✕</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinKey('B')">⌫</button>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon">💾</div>
+    <h3>Guardar cambios</h3>
+    <p>¿Deseas guardar los cambios en Google Sheets?</p>
+    <div class="modal-btns">
+      <button class="btn btn-limpiar" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-guardar" onclick="confirmarGuardar()">✅ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-icon">🏫</div>
+  <div class="header-text">
+    <h1>CRM COLEGIOS</h1>
+    <p>Panel de gestión institucional</p>
+  </div>
+  <div class="header-actions">
+    <button class="hdr-btn" id="btnSheets" title="Abrir Google Sheets" onclick="abrirSheets()">📊</button>
+    <button class="hdr-btn" id="btnEdit" title="Activar edición" onclick="toggleEdicion()">✏️</button>
+    <button class="hdr-btn" id="btnSave" title="Guardar cambios" onclick="abrirModal()" style="display:none">💾</button>
+    <div class="hdr-badge" id="statusBadge">⚙️ Demo</div>
+  </div>
+</div>
+<div class="edit-banner" id="editBanner">✏️ Modo edición activo — modifica los campos y presiona 💾 para guardar</div>
+
+<div class="container">
+
+  <!-- BUSCADOR -->
+  <div class="search-card">
+    <div class="search-label">🔍 Buscar colegio</div>
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="searchInput" placeholder="Escribe el nombre del colegio..." autocomplete="off">
+      <span class="search-icon">🔍</span>
+      <div class="dropdown" id="dropdown" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="main-grid">
+
+    <!-- FICHA -->
+    <div class="ficha-card" id="fichaCard">
+      <div class="ficha-empty"><span>🏫</span>Busca un colegio para ver su información</div>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="right-col">
+      <div class="cred-card">
+        <div class="cred-title">🔐 Credenciales de acceso</div>
+        <div id="credContent"><div class="cred-empty">Selecciona un colegio</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📊 Activación de Pines</div>
+        <div class="chart-wrap"><canvas id="donaChart"></canvas></div>
+        <div class="chart-stats">
+          <div class="stat-row"><span class="stat-label">Estudiantes</span><span class="stat-val" id="statEst">–</span></div>
+          <div class="stat-row"><span class="stat-label">Pines activos</span><span class="stat-val" id="statPin">–</span></div>
+          <div class="pct-badge" id="statPct">–%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════
+// CONFIGURACIÓN
+// ══════════════════════════════════
+const PIN_CORRECTO = "2025"; // ← CAMBIA AQUÍ TU PIN
+const CONFIG = {
+  apiKey: "AIzaSyB0CGxtZ9XHFwyQDbXTK6bmLaItx-wTuCk",
+  sheetId: "1RCNyiHto-QRJjrdiDO3trl-MajouzlcCLnc1hMW0EIU",
+  rangeDatos: "Datos!A2:AB100",
+  rangeContactos: "contactos!A2:E200"
+};
+const SHEETS_URL = `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}`;
+
+// ══════════════════════════════════
+// DATOS DEMO
+// ══════════════════════════════════
+const DEMO_DATOS = [
+  ["12027","13975","CENTRO COMERCIAL MADRE ELISA RONCALLO","San Cristobal Sur - Bogotá","AA","BOGOTÁ SUR","Jose Albeiro Vega Medina","","","admin.coach-12027","santillana2025","admin.back-12027","santillana2024","1 a 5 Lenguaje + cartilla\n1 a 5 Sociales Digital\n1 a 11 SET XXI\n1 a 5 Primary Go for It! SB\n\n6 a 11 Activa (2 Tomos) Sociales dig\n6 a 11 Activa (2 Tomos) Lenguaje\n6 y 7 Skill boost A1\n8 y 9 Skill boost A2\n10 y 11 Skill boost B1","381","","","Coach","","","CRISTIAN CAMILO MONRROY","","","","","",""]
+];
+const DEMO_CONTACTOS = [
+  ["CENTRO COMERCIAL MADRE ELISA RONCALLO","Coordinador","Hanithze Gacha","coordinacion@gmail.com","3184633999"],
+  ["CENTRO COMERCIAL MADRE ELISA RONCALLO","Docente","Luisa Huerfano","luisa@col.com","3133661184"]
+];
+
+const C = {id:0,crm:1,nombre:2,ciudad:3,tipo:4,regional:5,comercial:6,celCom:7,correoCom:8,usuAdmin:9,passAdmin:10,usuTM:11,passTM:12,contenidos:13,estudiantes:14,pinActivo:15,docentes:16,asesorIng:17,correoIng:18,telIng:19,asesorRob:20,correoRob:21,telRob:22,asesorDH:23,correoDH:24,telDH:25,canal:26,linea:27};
+
+let datos=[], contactos=[], colegioActual=null, chartInstance=null;
+let modoEdicion=false, modoDemo=true;
+
+// ══════════════════════════════════
+// PIN
+// ══════════════════════════════════
+let pinActual = "";
+function pinKey(k) {
+  if (k==="C") { pinActual=""; actualizarDots(false); document.getElementById("pinError").textContent=""; return; }
+  if (k==="B") { pinActual=pinActual.slice(0,-1); actualizarDots(false); return; }
+  if (pinActual.length>=4) return;
+  pinActual += k;
+  actualizarDots(false);
+  if (pinActual.length===4) {
+    setTimeout(()=>{
+      if (pinActual===PIN_CORRECTO) {
+        document.getElementById("pinOverlay").style.display="none";
+        init();
+      } else {
+        actualizarDots(true);
+        document.getElementById("pinError").textContent="PIN incorrecto. Intenta de nuevo.";
+        setTimeout(()=>{ pinActual=""; actualizarDots(false); document.getElementById("pinError").textContent=""; },900);
+      }
+    },200);
+  }
+}
+function actualizarDots(error) {
+  for(let i=0;i<4;i++){
+    const d=document.getElementById("d"+i);
+    d.className="pin-dot"+(i<pinActual.length?(error?" error":" filled"):"");
+  }
+}
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+async function init() {
+  if (CONFIG.apiKey!=="TU_API_KEY_AQUI") {
+    modoDemo=false;
+    await cargarDesdeSheets();
+  } else {
+    datos=DEMO_DATOS; contactos=DEMO_CONTACTOS;
+  }
+  initBuscador(); initChart();
+}
+
+// ══════════════════════════════════
+// SHEETS — LEER
+// ══════════════════════════════════
+async function cargarDesdeSheets() {
+  try {
+    const b=`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/`;
+    const k=`?key=${CONFIG.apiKey}`;
+    const [rD,rC]=await Promise.all([
+      fetch(b+encodeURIComponent(CONFIG.rangeDatos)+k).then(r=>r.json()),
+      fetch(b+encodeURIComponent(CONFIG.rangeContactos)+k).then(r=>r.json())
+    ]);
+    datos=(rD.values||[]).filter(r=>r[2]);
+    contactos=rC.values||[];
+    document.getElementById("statusBadge").textContent="✅ Conectado";
+  } catch(e){ mostrarToast("❌ Error al conectar","error"); }
+}
+
+// ══════════════════════════════════
+// EDICIÓN GLOBAL
+// ══════════════════════════════════
+function toggleEdicion() {
+  modoEdicion=!modoEdicion;
+  const btnE=document.getElementById("btnEdit");
+  const btnS=document.getElementById("btnSave");
+  const banner=document.getElementById("editBanner");
+  if (modoEdicion) {
+    btnE.className="hdr-btn edit-active"; btnE.title="Edición activa";
+    btnS.style.display="flex"; banner.classList.add("show");
+    habilitarCampos(true);
+    mostrarToast("✏️ Edición activada");
+  } else {
+    btnE.className="hdr-btn"; btnE.title="Activar edición";
+    btnS.style.display="none"; banner.classList.remove("show");
+    habilitarCampos(false);
+    mostrarToast("🔒 Edición desactivada");
+  }
+}
+function habilitarCampos(on) {
+  document.querySelectorAll(".field input:not([readonly]), .field textarea").forEach(el=>{
+    if (on) el.classList.add("editable"); else el.classList.remove("editable");
+  });
+}
+function abrirSheets() { window.open(SHEETS_URL,"_blank"); }
+
+// ══════════════════════════════════
+// BUSCADOR
+// ══════════════════════════════════
+function initBuscador() {
+  const input=document.getElementById("searchInput");
+  const dd=document.getElementById("dropdown");
+  input.addEventListener("input",()=>{
+    const q=input.value.trim().toUpperCase();
+    if(!q){dd.style.display="none";return;}
+    const matches=datos.map((r,i)=>({r,i})).filter(({r})=>r[C.nombre].toUpperCase().includes(q));
+    if(!matches.length){ dd.innerHTML='<div class="no-results">Sin coincidencias</div>'; }
+    else { dd.innerHTML=matches.map(({r,i})=>{
+      const hi=r[C.nombre].replace(new RegExp(q,"gi"),m=>`<mark>${m}</mark>`);
+      return `<div class="dropdown-item" onclick="seleccionarColegio(${i})"><span class="dropdown-name">${hi}</span></div>`;
+    }).join(""); }
+    dd.style.display="block";
+  });
+  document.addEventListener("click",e=>{ if(!e.target.closest(".search-wrap")) dd.style.display="none"; });
+}
+
+// ══════════════════════════════════
+// SELECCIONAR
+// ══════════════════════════════════
+function seleccionarColegio(idx) {
+  colegioActual=idx;
+  const r=datos[idx];
+  document.getElementById("searchInput").value=r[C.nombre];
+  document.getElementById("dropdown").style.display="none";
+  renderFicha(r,idx);
+  renderCredenciales(r);
+  actualizarChart(r);
+}
+
+// ══════════════════════════════════
+// FICHA
+// ══════════════════════════════════
+function renderFicha(r, idx) {
+  const v=i=>r[i]||"";
+  // Contactos del colegio
+  const nom=v(C.nombre).trim().toUpperCase();
+  const cols=contactos.filter(c=>(c[0]||"").trim().toUpperCase()===nom);
+  const contactosHTML = cols.length ? cols.map(c=>{
+    const ini=(c[2]||"?")[0].toUpperCase();
+    return `<div class="contact-card">
+      <div class="contact-header">
+        <div class="contact-avatar">${ini}</div>
+        <div><div class="contact-name">${c[2]||"–"}</div><div class="contact-cargo">${c[1]||"–"}</div></div>
+      </div>
+      <div class="contact-fields">
+        ${c[3]?`<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">✉️ Correo</div><div class="contact-field-val">${c[3]}</div></div><button class="icon-btn copy" onclick="copiarTexto('${c[3]}')">📋</button></div>`:""}
+        ${c[4]?`<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">📞 Teléfono</div><div class="contact-field-val">${c[4]}</div></div><button class="icon-btn copy" onclick="copiarTexto('${c[4]}')">📋</button></div>`:""}
+      </div>
+    </div>`;
+  }).join("") : '<div class="no-contactos">Sin contactos registrados</div>';
+
+  document.getElementById("fichaCard").innerHTML = `
+    <div class="ficha-header">
+      <div><div class="ficha-nombre">${v(C.nombre)}</div><div class="ficha-sub">${v(C.ciudad)} · ID: ${v(C.id)}</div></div>
+      <div class="ficha-tag">${v(C.tipo)||"–"}</div>
+    </div>
+    <div class="ficha-body">
+
+      <div class="sec-title">📋 Identificación</div>
+      <div class="fields-grid">
+        <div class="field"><label>ID</label><input value="${v(C.id)}" readonly></div>
+        <div class="field"><label>CRM</label><input value="${v(C.crm)}" readonly></div>
+        <div class="field full"><label>Nombre del Colegio</label><input id="f_nombre" value="${v(C.nombre)}"></div>
+        <div class="field"><label>Ciudad</label><input id="f_ciudad" value="${v(C.ciudad)}"></div>
+        <div class="field"><label>Tipo</label><input id="f_tipo" value="${v(C.tipo)}"></div>
+        <div class="field"><label>Regional</label><input id="f_regional" value="${v(C.regional)}"></div>
+        <div class="field"><label>Canal de Venta</label><input id="f_canal" value="${v(C.canal)}"></div>
+        <div class="field"><label>Línea</label><input id="f_linea" value="${v(C.linea)}"></div>
+      </div>
+
+      <div class="sec-title">👥 Contactos del Colegio</div>
+      ${contactosHTML}
+
+      <div class="sec-title">📚 Contenidos</div>
+      <div class="fields-grid">
+        <div class="field full"><label>Contenidos</label><textarea id="f_cont">${v(C.contenidos)}</textarea></div>
+      </div>
+
+      <div class="sec-title">💼 Datos Comercial</div>
+      <div class="fields-grid">
+        <div class="field"><label>Comercial</label><input id="f_com" value="${v(C.comercial)}"></div>
+        <div class="field"><label>Celular</label><input id="f_celCom" value="${v(C.celCom)}"></div>
+        <div class="field full"><label>Correo</label><input id="f_correoCom" value="${v(C.correoCom)}"></div>
+        <div class="field"><label>Estudiantes</label><input id="f_est" type="number" value="${v(C.estudiantes)}"></div>
+        <div class="field"><label>Activo PIN</label><input id="f_pin" type="number" value="${v(C.pinActivo)}"></div>
+        <div class="field"><label>N° Docentes</label><input id="f_doc" type="number" value="${v(C.docentes)}"></div>
+      </div>
+
+      <div class="sec-title">🌍 Asesores</div>
+      <div class="fields-grid">
+        <div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="${v(C.asesorIng)}"></div>
+        <div class="field"><label>Correo Inglés</label><input id="f_cIng" value="${v(C.correoIng)}"></div>
+        <div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="${v(C.telIng)}"></div>
+        <div class="field"><label>Asesor Robótica</label><input id="f_aRob" value="${v(C.asesorRob)}"></div>
+        <div class="field"><label>Correo Robótica</label><input id="f_cRob" value="${v(C.correoRob)}"></div>
+        <div class="field"><label>Tel. Robótica</label><input id="f_tRob" value="${v(C.telRob)}"></div>
+        <div class="field"><label>Asesor Digital House</label><input id="f_aDH" value="${v(C.asesorDH)}"></div>
+        <div class="field"><label>Correo Digital House</label><input id="f_cDH" value="${v(C.correoDH)}"></div>
+        <div class="field"><label>Tel. Digital House</label><input id="f_tDH" value="${v(C.telDH)}"></div>
+      </div>
+
+    </div>`;
+
+  if (modoEdicion) habilitarCampos(true);
+}
+
+// ══════════════════════════════════
+// CREDENCIALES
+// ══════════════════════════════════
+function renderCredenciales(r) {
+  const v=i=>r[i]||"";
+  const creds=[
+    {label:"Usuario Admin",val:v(C.usuAdmin),icon:"👤"},
+    {label:"Contraseña",val:v(C.passAdmin),icon:"🔑",hidden:true},
+    {label:"Usuario TM",val:v(C.usuTM),icon:"👤"},
+    {label:"Contraseña TM",val:v(C.passTM),icon:"🔑",hidden:true}
+  ].filter(c=>c.val);
+  if(!creds.length){document.getElementById("credContent").innerHTML='<div class="cred-empty">Sin credenciales registradas</div>';return;}
+  document.getElementById("credContent").innerHTML=creds.map((c,i)=>`
+    <div class="cred-row">
+      <div class="cred-info">
+        <div class="cred-label">${c.icon} ${c.label}</div>
+        <div class="cred-val ${c.hidden?'hidden':''}" id="credval-${i}">${c.hidden?'••••••••':c.val}</div>
+      </div>
+      <div class="cred-actions">
+        ${c.hidden?`<button class="icon-btn copy" style="background:#e8f0fe;color:#1565C0" title="Mostrar" onclick="toggleCred(${i},'${c.val}')">👁️</button>`:''}
+        <button class="icon-btn copy" title="Copiar" onclick="copiarTexto('${c.val}')">📋</button>
+      </div>
+    </div>`).join("");
+}
+function toggleCred(i,val){
+  const el=document.getElementById("credval-"+i);
+  if(el.classList.contains("hidden")){el.classList.remove("hidden");el.textContent=val;}
+  else{el.classList.add("hidden");el.textContent="••••••••";}
+}
+
+// ══════════════════════════════════
+// GUARDAR
+// ══════════════════════════════════
+function abrirModal(){
+  if(!modoEdicion){mostrarToast("✏️ Activa edición primero","error");return;}
+  if(colegioActual===null){mostrarToast("Selecciona un colegio","error");return;}
+  document.getElementById("modalOverlay").classList.add("active");
+}
+function closeModal(){document.getElementById("modalOverlay").classList.remove("active");}
+async function confirmarGuardar(){
+  closeModal();
+  const g=id=>document.getElementById(id)?.value||"";
+  const r=datos[colegioActual];
+  const fila=[
+    r[C.id],r[C.crm],g("f_nombre"),g("f_ciudad"),g("f_tipo"),g("f_regional"),
+    g("f_com"),g("f_celCom"),g("f_correoCom"),
+    r[C.usuAdmin],r[C.passAdmin],r[C.usuTM],r[C.passTM],
+    g("f_cont"),g("f_est"),g("f_pin"),g("f_doc"),
+    g("f_aIng"),g("f_cIng"),g("f_tIng"),
+    g("f_aRob"),g("f_cRob"),g("f_tRob"),
+    g("f_aDH"),g("f_cDH"),g("f_tDH"),
+    g("f_canal"),g("f_linea")
+  ];
+  datos[colegioActual]=fila;
+  actualizarChart(fila);
+  renderCredenciales(fila);
+  mostrarToast("✅ Cambios guardados","ok");
+  toggleEdicion();
+}
+
+// ══════════════════════════════════
+// GRÁFICA
+// ══════════════════════════════════
+function initChart(){
+  const ctx=document.getElementById("donaChart").getContext("2d");
+  chartInstance=new Chart(ctx,{
+    type:"doughnut",
+    data:{labels:["Activos","Por activar"],datasets:[{data:[0,1],backgroundColor:["#1565C0","#BBDEFB"],borderWidth:0}]},
+    options:{cutout:"70%",plugins:{legend:{display:false}},animation:{duration:600}}
+  });
+}
+function actualizarChart(r){
+  if(!r){chartInstance.data.datasets[0].data=[0,1];chartInstance.update();
+    document.getElementById("statEst").textContent="–";document.getElementById("statPin").textContent="–";document.getElementById("statPct").textContent="–%";return;}
+  const est=parseInt(r[C.estudiantes])||0,pin=parseInt(r[C.pinActivo])||0;
+  chartInstance.data.datasets[0].data=est>0?[pin,Math.max(0,est-pin)]:[0,1];chartInstance.update();
+  document.getElementById("statEst").textContent=est||"–";document.getElementById("statPin").textContent=pin||"–";
+  document.getElementById("statPct").textContent=est>0?`${Math.round((pin/est)*100)}%`:"–%";
+}
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+function copiarTexto(txt){navigator.clipboard.writeText(txt).then(()=>mostrarToast("📋 Copiado","ok")).catch(()=>{});}
+function mostrarToast(msg,tipo=""){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.className="toast"+(tipo?" "+tipo:"")+" show";
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
+</script>
+</body>
+</html>
