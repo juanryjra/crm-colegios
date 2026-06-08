@@ -461,32 +461,28 @@ function renderFicha(r, idx) {
         '<div class="field"><label>Regional</label><input id="f_regional" value="' + v(C.regional) + '"></div>' +
         '<div class="field"><label>Canal de Venta</label><input id="f_canal" value="' + v(C.canal) + '"></div>' +
         '<div class="field"><label>Línea</label><input id="f_linea" value="' + v(C.linea) + '"></div>' +
-      '</div>' +
-      '<div class="sec-title">👥 Contactos del Colegio</div>' +
-      contactosHTML +
-      '<div class="sec-title">📚 Contenidos</div>' +
-      '<div style="grid-column:1/-1"><div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">' + v(C.contenidos) + '</textarea></div></div>' +
-      '<div class="sec-title">💼 Datos Comercial</div>' +
-      '<div class="fields-grid" style="grid-template-columns:1fr">' +
-        '<div class="field"><label>Comercial</label><input id="f_com" value="' + v(C.comercial) + '"></div>' +
-        '<div class="field"><label>Celular</label><input id="f_celCom" value="' + v(C.celCom) + '"></div>' +
-        '<div class="field"><label>Correo</label><input id="f_correoCom" value="' + v(C.correoCom) + '"></div>' +
         '<div class="field"><label>Estudiantes</label><input id="f_est" type="number" value="' + v(C.estudiantes) + '"></div>' +
         '<div class="field"><label>Activo PIN</label><input id="f_pin" type="number" value="' + v(C.pinActivo) + '"></div>' +
         '<div class="field"><label>N° Docentes</label><input id="f_doc" type="number" value="' + v(C.docentes) + '"></div>' +
       '</div>' +
+      '<div class="sec-title">👥 Contactos del Colegio</div>' +
+      contactosHTML +
+      '<div class="sec-title">📚 Contenidos</div>' +
+      '<div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">' + v(C.contenidos) + '</textarea></div>' +
+      '<div class="sec-title">💼 Datos Comercial</div>' +
+      '<div class="field"><label>Comercial</label><input id="f_com" value="' + v(C.comercial) + '"></div>' +
+      '<div class="field"><label>Celular</label><input id="f_celCom" value="' + v(C.celCom) + '"></div>' +
+      '<div class="field"><label>Correo</label><input id="f_correoCom" value="' + v(C.correoCom) + '"></div>' +
       '<div class="sec-title">🌍 Asesores</div>' +
-      '<div class="fields-grid" style="grid-template-columns:1fr">' +
-        '<div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="' + v(C.asesorIng) + '"></div>' +
-        '<div class="field"><label>Correo Inglés</label><input id="f_cIng" value="' + v(C.correoIng) + '"></div>' +
-        '<div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="' + v(C.telIng) + '"></div>' +
-        '<div class="field"><label>Asesor Robótica</label><input id="f_aRob" value="' + v(C.asesorRob) + '"></div>' +
-        '<div class="field"><label>Correo Robótica</label><input id="f_cRob" value="' + v(C.correoRob) + '"></div>' +
-        '<div class="field"><label>Tel. Robótica</label><input id="f_tRob" value="' + v(C.telRob) + '"></div>' +
-        '<div class="field"><label>Asesor Digital House</label><input id="f_aDH" value="' + v(C.asesorDH) + '"></div>' +
-        '<div class="field"><label>Correo Digital House</label><input id="f_cDH" value="' + v(C.correoDH) + '"></div>' +
-        '<div class="field"><label>Tel. Digital House</label><input id="f_tDH" value="' + v(C.telDH) + '"></div>' +
-      '</div>' +
+      '<div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="' + v(C.asesorIng) + '"></div>' +
+      '<div class="field"><label>Correo Inglés</label><input id="f_cIng" value="' + v(C.correoIng) + '"></div>' +
+      '<div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="' + v(C.telIng) + '"></div>' +
+      '<div class="field"><label>Asesor Robótica</label><input id="f_aRob" value="' + v(C.asesorRob) + '"></div>' +
+      '<div class="field"><label>Correo Robótica</label><input id="f_cRob" value="' + v(C.correoRob) + '"></div>' +
+      '<div class="field"><label>Tel. Robótica</label><input id="f_tRob" value="' + v(C.telRob) + '"></div>' +
+      '<div class="field"><label>Asesor Digital House</label><input id="f_aDH" value="' + v(C.asesorDH) + '"></div>' +
+      '<div class="field"><label>Correo Digital House</label><input id="f_cDH" value="' + v(C.correoDH) + '"></div>' +
+      '<div class="field"><label>Tel. Digital House</label><input id="f_tDH" value="' + v(C.telDH) + '"></div>' +
     '</div>';
 
   if (modoEdicion) habilitarCampos(true);
