@@ -339,13 +339,17 @@ let modoEdicion=false, modoDemo=true;
 // PIN
 // ══════════════════════════════════
 let pinActual = "";
+let pinBloqueado = false;
+
 function pinKey(k) {
+  if (pinBloqueado) return;
   if (k==="C") { pinActual=""; actualizarDots(false); document.getElementById("pinError").textContent=""; return; }
   if (k==="B") { pinActual=pinActual.slice(0,-1); actualizarDots(false); return; }
   if (pinActual.length>=4) return;
   pinActual += k;
   actualizarDots(false);
   if (pinActual.length===4) {
+    pinBloqueado = true;
     setTimeout(()=>{
       if (pinActual===PIN_CORRECTO) {
         document.getElementById("pinOverlay").style.display="none";
@@ -353,17 +357,32 @@ function pinKey(k) {
       } else {
         actualizarDots(true);
         document.getElementById("pinError").textContent="PIN incorrecto. Intenta de nuevo.";
-        setTimeout(()=>{ pinActual=""; actualizarDots(false); document.getElementById("pinError").textContent=""; },900);
+        setTimeout(()=>{
+          pinActual="";
+          pinBloqueado=false;
+          actualizarDots(false);
+          document.getElementById("pinError").textContent="";
+        },900);
       }
     },200);
   }
 }
+
 function actualizarDots(error) {
   for(let i=0;i<4;i++){
     const d=document.getElementById("d"+i);
     d.className="pin-dot"+(i<pinActual.length?(error?" error":" filled"):"");
   }
 }
+
+// Teclado físico para el PIN
+document.addEventListener("keydown", function(e) {
+  const overlay = document.getElementById("pinOverlay");
+  if (!overlay || overlay.style.display==="none") return;
+  if (e.key>="0" && e.key<="9") { pinKey(e.key); return; }
+  if (e.key==="Backspace") { pinKey("B"); return; }
+  if (e.key==="Escape") { pinKey("C"); return; }
+});
 
 // ══════════════════════════════════
 // INIT
