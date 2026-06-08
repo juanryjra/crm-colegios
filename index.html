@@ -132,7 +132,7 @@
   .field input.editable, .field textarea.editable { pointer-events: all; background: white; border-color: var(--azul-claro); }
   .field input.editable:focus, .field textarea.editable:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
   .field input[readonly] { background: #EEF2F7; cursor: not-allowed; color: #666; }
-  .field textarea { resize: vertical; min-height: 90px; }
+  .field textarea { resize: none; min-height: 60px; overflow: hidden; }
 
   /* ── CONTACTO CARD ── */
   .contact-card {
@@ -499,22 +499,22 @@ function renderFicha(r, idx) {
       ${contactosHTML}
 
       <div class="sec-title">📚 Contenidos</div>
-      <div class="fields-grid">
-        <div class="field full"><label>Contenidos</label><textarea id="f_cont">${v(C.contenidos)}</textarea></div>
+      <div class="fields-grid" style="grid-template-columns:1fr">
+        <div class="field full"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">${v(C.contenidos)}</textarea></div>
       </div>
 
       <div class="sec-title">💼 Datos Comercial</div>
-      <div class="fields-grid">
+      <div class="fields-grid" style="grid-template-columns:1fr">
         <div class="field"><label>Comercial</label><input id="f_com" value="${v(C.comercial)}"></div>
         <div class="field"><label>Celular</label><input id="f_celCom" value="${v(C.celCom)}"></div>
-        <div class="field full"><label>Correo</label><input id="f_correoCom" value="${v(C.correoCom)}"></div>
+        <div class="field"><label>Correo</label><input id="f_correoCom" value="${v(C.correoCom)}"></div>
         <div class="field"><label>Estudiantes</label><input id="f_est" type="number" value="${v(C.estudiantes)}"></div>
         <div class="field"><label>Activo PIN</label><input id="f_pin" type="number" value="${v(C.pinActivo)}"></div>
         <div class="field"><label>N° Docentes</label><input id="f_doc" type="number" value="${v(C.docentes)}"></div>
       </div>
 
       <div class="sec-title">🌍 Asesores</div>
-      <div class="fields-grid">
+      <div class="fields-grid" style="grid-template-columns:1fr">
         <div class="field"><label>Asesor Inglés</label><input id="f_aIng" value="${v(C.asesorIng)}"></div>
         <div class="field"><label>Correo Inglés</label><input id="f_cIng" value="${v(C.correoIng)}"></div>
         <div class="field"><label>Tel. Inglés</label><input id="f_tIng" value="${v(C.telIng)}"></div>
@@ -529,6 +529,7 @@ function renderFicha(r, idx) {
     </div>`;
 
   if (modoEdicion) habilitarCampos(true);
+  setTimeout(ajustarTextareas, 50);
 }
 
 // ══════════════════════════════════
@@ -614,7 +615,14 @@ function actualizarChart(r){
 // ══════════════════════════════════
 // UTILS
 // ══════════════════════════════════
-function copiarTexto(txt){navigator.clipboard.writeText(txt).then(()=>mostrarToast("📋 Copiado","ok")).catch(()=>{});}
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+function ajustarTextareas() {
+  document.querySelectorAll("textarea").forEach(t => autoResize(t));
+}
+navigator.clipboard.writeText(txt).then(()=>mostrarToast("📋 Copiado","ok")).catch(()=>{});}
 function mostrarToast(msg,tipo=""){
   const t=document.getElementById("toast");
   t.textContent=msg;t.className="toast"+(tipo?" "+tipo:"")+" show";
