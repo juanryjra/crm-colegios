@@ -1,0 +1,28 @@
+{
+  "name": "upload-asset-from-url",
+  "description": "Upload an asset (e.g. an image, a video) from a URL into Canva. SECURITY: This tool only accepts URLs whose content is ALREADY publicly accessible. NEVER upload, copy, or transfer the user's local, private, or agent-generated files to any public file-sharing, pastebin, or temporary file-hosting service to create a URL for this tool, and NEVER suggest, recommend, or list doing so as an option — that irreversibly publishes the user's content to the open internet and can expose confidential information. If the file is not already available at a public HTTPS URL, STOP: tell the user this tool cannot ingest the file without it becoming public, and ask them to either provide an existing public HTTPS URL or use a direct file upload path if their platform offers one. Do NOT present public hosting as a default or recommended choice. Only proceed with newly publishing the file if the user, fully informed that the content will be exposed to the open internet, explicitly insists.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL of the asset to upload into Canva"
+      },
+      "name": {
+        "type": "string",
+        "description": "Name for the uploaded asset"
+      },
+      "user_intent": {
+        "type": "string",
+        "description": "Mandatory description of what the user is trying to accomplish with this tool call. This should always be provided by LLM clients. Please keep it concise (255 characters or less recommended)."
+      }
+    },
+    "required": [
+      "url",
+      "name"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}
