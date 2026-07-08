@@ -451,9 +451,10 @@ async function init() {
     if (res[0].error || res[1].error || res[2].error) {
       throw new Error((res[0].error || res[1].error || res[2].error).message || "Error al leer Google Sheets");
     }
-    datos=(res[0].values||[]).filter(function(r){return r[2];});
+    datos=[];
+    (res[0].values||[]).forEach(function(r,i){if(r[2]){r._fila=i;datos.push(r);}});
     contactos=res[1].values||[];
-    senso=res[2].values||[];
+    senso=(res[2].values||[]).map(function(r,i){r._fila=i;return r;});
     if (!datos.length) throw new Error("No se encontraron colegios en la hoja Datos");
     document.getElementById("statusBadge").textContent="✅ Conectado";
   } catch(e) {
@@ -657,9 +658,10 @@ async function confirmarGuardar(){
   actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
   mostrarToast("⏳ Guardando...");
   try {
-    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"datos",fila:colegioActual,valores:fila})});
+    var filaSheet=datos[colegioActual]._fila;
+    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"datos",fila:filaSheet,valores:fila})});
     var res=await resp.json();
-    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+res.error,res.success?"ok":"error");
+    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
   } catch(e){mostrarToast("❌ Error de conexión","error");}
 }
 
@@ -787,14 +789,15 @@ async function guardarCenso(){
   // Actualizar en memoria
   var nomColegio=datos[censoActual][C.nombre].trim().toUpperCase();
   var idx=senso.findIndex(function(s){return (s[0]||"").trim().toUpperCase()===nomColegio;});
-  if(idx>=0) senso[idx]=valores; else senso.push(valores);
+  var filaNum;
+  if(idx>=0){senso[idx]=valores;filaNum=senso[idx]._fila;}
+  else{valores._fila=senso.length;senso.push(valores);filaNum=valores._fila;}
   toggleEdicionCenso();
   mostrarToast("⏳ Guardando...");
   try {
-    var filaNum=idx>=0?idx:senso.length-1;
     var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"senso",fila:filaNum,valores:valores})});
     var res=await resp.json();
-    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+res.error,res.success?"ok":"error");
+    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
   } catch(e){mostrarToast("❌ Error de conexión","error");}
 }
 
