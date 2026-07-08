@@ -660,9 +660,13 @@ async function confirmarGuardar(){
   actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
   mostrarToast("⏳ Guardando...");
   try {
-    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"datos",fila:filaSheet,valores:fila})});
+    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"datos",hoja:"Datos",fila:filaSheet,valores:fila})});
     var res=await resp.json();
-    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
+    if(res.success && res.hoja && res.hoja!=="Datos"){
+      mostrarToast("⚠️ Error: se guardó en "+res.hoja+" en lugar de Datos. Actualiza google-apps-script.gs","error");
+      return;
+    }
+    mostrarToast(res.success?"✅ Guardado en hoja Datos":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
   } catch(e){mostrarToast("❌ Error de conexión","error");}
 }
 
@@ -780,25 +784,32 @@ function toggleEdicionCenso(){
 
 async function guardarCenso(){
   if(censoActual===null){mostrarToast("Selecciona un colegio","error");return;}
-  var valores=[datos[censoActual][C.nombre]];
+  if(!modoEdicionCenso){mostrarToast("✏️ Activa edición primero","error");return;}
+  var nomColegio=datos[censoActual][C.nombre].trim();
+  var nomBuscar=nomColegio.toUpperCase();
+  var valores=[nomColegio];
   var total=0;
   for(var i=0;i<GRADOS.length;i++){
     var val=parseInt(document.getElementById("censo_"+i)?.value)||0;
     valores.push(val); total+=val;
   }
   valores.push(total);
-  // Actualizar en memoria
-  var nomColegio=datos[censoActual][C.nombre].trim().toUpperCase();
-  var idx=senso.findIndex(function(s){return (s[0]||"").trim().toUpperCase()===nomColegio;});
+  var idx=senso.findIndex(function(s){return (s[0]||"").trim().toUpperCase()===nomBuscar;});
   var filaNum;
-  if(idx>=0){filaNum=senso[idx]._fila;valores._fila=filaNum;senso[idx]=valores;}
-  else{filaNum=senso.length;valores._fila=filaNum;senso.push(valores);}
+  if(idx>=0){filaNum=senso[idx]._fila;}
+  else{filaNum=senso.length;}
+  valores._fila=filaNum;
+  if(idx>=0) senso[idx]=valores; else senso.push(valores);
   toggleEdicionCenso();
-  mostrarToast("⏳ Guardando...");
+  mostrarToast("⏳ Guardando censo en SENSO...");
   try {
-    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"senso",fila:filaNum,valores:valores})});
+    var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify({tipo:"senso",hoja:"SENSO",fila:filaNum,valores:valores})});
     var res=await resp.json();
-    mostrarToast(res.success?"✅ Guardado en Google Sheets":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
+    if(res.success && res.hoja && res.hoja!=="SENSO"){
+      mostrarToast("⚠️ Error: se guardó en "+res.hoja+" en lugar de SENSO. Actualiza google-apps-script.gs","error");
+      return;
+    }
+    mostrarToast(res.success?"✅ Censo guardado en hoja SENSO":"⚠️ "+(res.error||"Error al guardar"),res.success?"ok":"error");
   } catch(e){mostrarToast("❌ Error de conexión","error");}
 }
 
