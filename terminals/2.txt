@@ -3,7 +3,7 @@ pid: 18472
 cwd: "C:\Users\juria\OneDrive\Documentos2\PaginaWeb\RepositorioGitHub\crm-colegios"
 command: "cd \"C:\\Users\\juria\\OneDrive\\Documentos2\\PaginaWeb\\RepositorioGitHub\\crm-colegios\"; $env:GIT_TERMINAL_PROMPT=0; git push origin main 2>&1"
 started_at: 2026-07-07T23:56:39.089Z
-running_for_ms: 314993   
+running_for_ms: 4429999  
 ---
 git : Everything up-to-date
 En l�nea: 1 Car�cter: 112
