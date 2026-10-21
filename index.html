@@ -5,15 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRM Colegios</title>
 
-<!-- ══════ LIBRERÍAS ══════ -->
-<!-- Gráficas (original) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<!-- GSAP: transiciones, tilt 3D, imán en botones, entradas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<!-- Anime.js: contadores, rebotes elásticos, íconos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<!-- Mo.js: explosiones de partículas al hacer clic -->
-<script src="https://cdn.jsdelivr.net/npm/@mojs/core@1.7.1/dist/mo.umd.js"></script>
+<!-- ══════ LIBRERÍAS ══════
+     OPT: los <script> se movieron al final del <body> para que la pantalla del PIN
+     aparezca sin esperar a que bajen ~400 KB de JavaScript.
+     OPT: se eliminó Anime.js; GSAP ya hace lo mismo (contadores, rebotes). -->
 <!-- Phosphor Icons: duotono + bold -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/duotone/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css">
@@ -33,6 +28,9 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-body);background:#EBF3FB;color:var(--texto);min-height:100vh;user-select:text;-webkit-user-select:text;}
+
+/* OPT: quita el retraso/zoom por doble toque y el destello gris al tocar en móvil */
+button,.menu-card,.dropdown-item,.lista-go{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 
 /* ICONOS PHOSPHOR */
 i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1;}
@@ -66,13 +64,16 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
   100%{background-position:0% 90%,20% 90%,45% 70%,60% 110%,75% 80%,95% 70%,110% 10%;background-size:0% 0%,0% 0%,0% 0%,0% 0%,0% 0%,0% 0%,0% 0%;}
 }
 
-/* PIN */
+/* PIN
+   OPT: las manchas de fondo usaban filter:blur(60px) animado, que obliga al celular
+   a re-desenfocar 400px en cada cuadro. Ahora son degradados radiales (mismo look)
+   y solo se anima transform, que lo resuelve la GPU sin repintar. */
 .pin-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0D47A1 0%,#1565C0 60%,#42A5F5 100%);z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.pin-overlay::before,.pin-overlay::after{content:'';position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;animation:flota 14s ease-in-out infinite alternate;}
-.pin-overlay::before{width:420px;height:420px;background:#42A5F5;top:-120px;left:-120px;}
-.pin-overlay::after{width:360px;height:360px;background:#0D47A1;bottom:-100px;right:-100px;animation-delay:-6s;}
-@keyframes flota{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,40px) scale(1.2);}}
-.pin-box{position:relative;background:rgba(255,255,255,0.96);border-radius:24px;padding:40px 36px;text-align:center;width:320px;box-shadow:0 24px 64px rgba(0,0,0,0.3);}
+.pin-overlay::before,.pin-overlay::after{content:'';position:absolute;border-radius:50%;opacity:.7;will-change:transform;animation:flota 14s ease-in-out infinite alternate;}
+.pin-overlay::before{width:520px;height:520px;background:radial-gradient(circle,rgba(66,165,245,.85) 0%,rgba(66,165,245,0) 68%);top:-170px;left:-170px;}
+.pin-overlay::after{width:460px;height:460px;background:radial-gradient(circle,rgba(13,71,161,.9) 0%,rgba(13,71,161,0) 68%);bottom:-150px;right:-150px;animation-delay:-6s;}
+@keyframes flota{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(60px,40px,0) scale(1.2);}}
+.pin-box{position:relative;background:rgba(255,255,255,0.96);border-radius:24px;padding:40px 36px;text-align:center;width:320px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,0.3);}
 .pin-logo{font-size:3.2rem;margin-bottom:10px;color:var(--azul);}
 .pin-title{font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--azul2);margin-bottom:4px;}
 .pin-sub{font-size:0.82rem;color:#888;margin-bottom:28px;}
@@ -81,7 +82,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .pin-dot.filled{background:var(--azul);border-color:var(--azul);}
 .pin-dot.error{background:#e53935;border-color:#e53935;}
 .pin-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.pin-key{padding:16px;border-radius:12px;border:none;font-family:var(--font-display);font-size:1.2rem;font-weight:700;background:var(--azul-fondo);color:var(--azul2);cursor:pointer;transition:all 0.15s;user-select:none;position:relative;overflow:hidden;}
+.pin-key{padding:16px;border-radius:12px;border:none;font-family:var(--font-display);font-size:1.2rem;font-weight:700;background:var(--azul-fondo);color:var(--azul2);cursor:pointer;transition:color .15s,transform .15s;user-select:none;position:relative;overflow:hidden;}
 .pin-key::before{content:'';position:absolute;inset:0;background:var(--azul);transform:translateY(101%);transition:transform .25s ease;z-index:0;}
 .pin-key>*{position:relative;z-index:1;}
 .pin-key:hover{color:white;}
@@ -92,10 +93,12 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .pin-key.del:hover{color:white;}
 .pin-error{color:#e53935;font-size:0.82rem;margin-top:14px;font-weight:600;min-height:20px;}
 
-/* HEADER */
+/* HEADER
+   OPT: el brillo animaba "left" (recalcula layout en cada cuadro).
+   Ahora se mueve con transform, que no repinta la cabecera fija. */
 .header{background:linear-gradient(135deg,var(--azul2),var(--azul3));color:white;padding:14px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 16px rgba(13,71,161,0.25);position:sticky;top:0;z-index:100;overflow:hidden;}
-.header::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-20deg);animation:brillo 7s ease-in-out infinite;pointer-events:none;}
-@keyframes brillo{0%,70%{left:-60%;}100%{left:140%;}}
+.header::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:translate3d(-150%,0,0) skewX(-20deg);animation:brillo 7s ease-in-out infinite;pointer-events:none;will-change:transform;}
+@keyframes brillo{0%,70%{transform:translate3d(-150%,0,0) skewX(-20deg);}100%{transform:translate3d(350%,0,0) skewX(-20deg);}}
 .header-icon{font-size:1.8rem;}
 .header-text h1{font-family:var(--font-display);font-size:1.2rem;font-weight:800;}
 .header-text p{font-size:0.72rem;opacity:0.75;}
@@ -106,29 +109,30 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .hdr-badge{background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 12px;font-size:0.72rem;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;}
 .edit-banner{background:#FFF9C4;border-bottom:2px solid #FFC107;padding:8px 24px;font-size:0.82rem;font-weight:600;color:#795548;display:none;align-items:center;gap:8px;justify-content:center;}
 .edit-banner.show{display:flex;}
-.back-btn{background:rgba(255,255,255,0.2);border:none;color:white;padding:7px 14px;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;--b:rgba(255,255,255,.75);}
+.back-btn{background:rgba(255,255,255,0.2);border:none;color:white;padding:7px 14px;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;--b:rgba(255,255,255,.75);transition:background .2s;}
 .back-btn:hover{background:rgba(255,255,255,0.35);}
 .back-btn i{transition:transform .25s;}
 .back-btn:hover i{transform:translateX(-4px);}
 
-/* MENÚ */
+/* MENÚ (mismas manchas optimizadas que el PIN) */
 .menu-screen{min-height:100vh;background:linear-gradient(135deg,#0D47A1,#1565C0,#42A5F5);position:relative;overflow:hidden;}
-.menu-screen::before,.menu-screen::after{content:'';position:absolute;border-radius:50%;filter:blur(70px);opacity:.4;pointer-events:none;animation:flota 16s ease-in-out infinite alternate;}
-.menu-screen::before{width:480px;height:480px;background:#90CAF9;top:-160px;right:-120px;}
-.menu-screen::after{width:380px;height:380px;background:#0D47A1;bottom:-120px;left:-100px;animation-delay:-8s;}
+.menu-screen::before,.menu-screen::after{content:'';position:absolute;border-radius:50%;opacity:.65;pointer-events:none;will-change:transform;animation:flota 16s ease-in-out infinite alternate;}
+.menu-screen::before{width:600px;height:600px;background:radial-gradient(circle,rgba(144,202,249,.85) 0%,rgba(144,202,249,0) 68%);top:-220px;right:-180px;}
+.menu-screen::after{width:500px;height:500px;background:radial-gradient(circle,rgba(13,71,161,.9) 0%,rgba(13,71,161,0) 68%);bottom:-180px;left:-160px;animation-delay:-8s;}
 .menu-screen>*{position:relative;z-index:1;}
 .menu-header{padding:40px 24px 20px;text-align:center;color:white;}
 .menu-header h1{font-family:var(--font-display);font-size:1.8rem;font-weight:800;letter-spacing:1px;}
 .menu-header p{opacity:0.8;margin-top:6px;}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;padding:20px 24px 40px;max-width:800px;margin:0 auto;}
-.menu-card{position:relative;overflow:hidden;background:white;border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,0.15);will-change:transform;}
-.menu-card::after{content:'';position:absolute;left:0;right:100%;bottom:0;height:5px;background:linear-gradient(90deg,var(--azul-claro),var(--azul));transition:right .35s ease;}
-.menu-card:hover::after{right:0;}
+.menu-card{position:relative;overflow:hidden;background:white;border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+/* OPT: la barra inferior animaba "right" (layout). Ahora usa scaleX. */
+.menu-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--azul-claro),var(--azul));transform:scaleX(0);transform-origin:left;transition:transform .35s ease;}
+.menu-card:hover::after{transform:scaleX(1);}
 .menu-card-icon{width:76px;height:76px;margin:0 auto 16px;border-radius:22px;display:grid;place-items:center;font-size:2.4rem;color:var(--azul2);background:linear-gradient(135deg,var(--azul-fondo),var(--azul-suave));}
 .menu-card-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--azul2);margin-bottom:6px;}
 .menu-card-desc{font-size:0.78rem;color:#888;}
 .menu-sheets{display:flex;justify-content:center;padding-bottom:30px;}
-.menu-sheets-btn{background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);color:white;padding:10px 22px;border-radius:12px;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;--b:rgba(255,255,255,.8);}
+.menu-sheets-btn{background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);color:white;padding:10px 22px;border-radius:12px;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;--b:rgba(255,255,255,.8);transition:background .2s;}
 .menu-sheets-btn:hover{background:rgba(255,255,255,0.35);}
 
 /* CONTAINER */
@@ -138,12 +142,15 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .search-card{background:white;border-radius:16px;padding:18px 20px;box-shadow:var(--sombra);margin-bottom:20px;}
 .search-label{font-size:0.72rem;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .search-wrap{position:relative;}
-.search-input{width:100%;padding:13px 48px 13px 18px;border:2px solid var(--azul-suave);border-radius:12px;font-family:var(--font-body);font-size:0.98rem;outline:none;transition:border .2s,box-shadow .2s,background .2s;background:var(--gris);}
+.search-input{width:100%;padding:13px 48px 13px 18px;border:2px solid var(--azul-suave);border-radius:12px;font-family:var(--font-body);font-size:0.98rem;outline:none;transition:border-color .2s,box-shadow .2s,background-color .2s;background:var(--gris);}
 .search-input:focus{border-color:var(--azul);background:white;box-shadow:0 0 0 4px rgba(66,165,245,.18);}
 .search-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:1.3rem;color:var(--azul-claro);pointer-events:none;}
-.dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.13);z-index:200;max-height:260px;overflow-y:auto;border:1px solid var(--azul-suave);}
-.dropdown-item{padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--gris);display:flex;align-items:center;gap:10px;transition:background .15s,padding-left .2s;font-size:0.92rem;}
-.dropdown-item:hover{background:var(--azul-fondo);padding-left:22px;}
+.dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.13);z-index:200;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--azul-suave);}
+.dropdown-item{padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--gris);display:flex;align-items:center;gap:10px;transition:background-color .15s;font-size:0.92rem;}
+/* OPT: antes se animaba padding-left (layout); ahora se desplaza el texto con transform */
+.dropdown-item>span{transition:transform .2s;}
+.dropdown-item:hover{background:var(--azul-fondo);}
+.dropdown-item:hover>span{transform:translateX(6px);}
 .dropdown-item:last-child{border-bottom:none;}
 .dropdown-item mark{background:#fff176;border-radius:3px;padding:0 2px;}
 .no-results{padding:14px 18px;color:#888;font-style:italic;}
@@ -168,7 +175,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 @media(max-width:600px){.fields-grid{grid-template-columns:1fr;}}
 .field.full{grid-column:1/-1;}
 .field label{font-size:0.68rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;}
-.field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--azul-suave);border-radius:8px;font-size:0.87rem;background:var(--gris);outline:none;transition:all 0.2s;color:var(--texto);font-family:inherit;pointer-events:all;user-select:text;-webkit-user-select:text;cursor:text;}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--azul-suave);border-radius:8px;font-size:0.87rem;background:var(--gris);outline:none;transition:border-color .2s,background-color .2s,box-shadow .2s;color:var(--texto);font-family:inherit;pointer-events:all;user-select:text;-webkit-user-select:text;cursor:text;}
 .field input.editable,.field textarea.editable{background:white;border-color:var(--azul-claro);}
 .field input.editable:focus,.field textarea.editable:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,0.1);}
 .field input:not(.editable):not([readonly]){pointer-events:none;}
@@ -193,7 +200,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .no-contactos{text-align:center;color:#aaa;padding:20px;font-style:italic;font-size:0.85rem;}
 
 /* ICON BTN */
-.icon-btn{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;flex-shrink:0;}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background-color .15s,color .15s,transform .15s;flex-shrink:0;}
 .icon-btn.copy{background:var(--azul-fondo);color:var(--azul);}
 .icon-btn.copy:hover{background:var(--azul);color:white;transform:scale(1.12) rotate(-6deg);}
 .icon-btn.go{background:#E8F5E9;color:#2e7d32;}
@@ -225,10 +232,19 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .stat-val{font-weight:700;color:var(--azul);}
 .pct-badge{display:block;text-align:center;margin-top:10px;background:linear-gradient(135deg,var(--azul2),var(--azul3));color:white;border-radius:10px;padding:10px;font-family:var(--font-display);font-size:1.4rem;font-weight:800;}
 
-/* LISTA COLEGIOS */
-.lista-item{background:white;border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--sombra);display:flex;align-items:flex-start;gap:14px;border-left:4px solid var(--azul);transition:box-shadow .25s,border-left-width .25s;}
-.lista-item:hover{border-left-width:8px;box-shadow:0 8px 30px rgba(21,101,192,.18);}
-.lista-go{width:40px;height:40px;border-radius:12px;background:var(--azul-fondo);color:var(--azul);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;transition:all 0.2s;}
+/* LISTA COLEGIOS
+   OPT: antes se animaba border-left-width (layout de toda la lista).
+   Ahora la barra es un pseudo-elemento que crece con scaleX.
+   OPT: content-visibility hace que el navegador no dibuje las tarjetas que
+   están fuera de pantalla; con 80-100 colegios se nota mucho en móvil. */
+.lista-item{position:relative;overflow:hidden;background:white;border-radius:14px;padding:16px 18px 16px 22px;margin-bottom:14px;box-shadow:var(--sombra);display:flex;align-items:flex-start;gap:14px;content-visibility:auto;contain-intrinsic-size:auto 130px;}
+.lista-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--azul);transform:scaleX(.5);transform-origin:left;transition:transform .25s;}
+.lista-item:hover::before{transform:scaleX(1);}
+@media (hover:hover){
+  .lista-item{transition:box-shadow .25s;}
+  .lista-item:hover{box-shadow:0 8px 30px rgba(21,101,192,.18);}
+}
+.lista-go{width:40px;height:40px;border-radius:12px;background:var(--azul-fondo);color:var(--azul);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;transition:background-color .2s,color .2s,transform .2s;}
 .lista-go:hover{background:var(--azul);color:white;transform:scale(1.08);}
 .lista-info{flex:1;min-width:0;}
 .lista-ids{font-size:0.72rem;color:#888;margin-bottom:4px;font-weight:600;}
@@ -245,15 +261,18 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .censo-total-num{font-family:var(--font-display);font-size:3.5rem;font-weight:800;letter-spacing:-2px;}
 .censo-total-sub{font-size:0.8rem;opacity:0.75;margin-top:4px;}
 .censo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
-.censo-item{background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:var(--sombra);border-top:3px solid var(--azul-claro);transition:transform .25s,box-shadow .25s;}
-.censo-item:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(21,101,192,.16);}
+.censo-item{background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:var(--sombra);border-top:3px solid var(--azul-claro);}
+@media (hover:hover){
+  .censo-item{transition:transform .25s,box-shadow .25s;}
+  .censo-item:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(21,101,192,.16);}
+}
 .censo-grado{font-size:0.7rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
 .censo-num{font-size:1.6rem;font-weight:900;color:var(--azul2);}
 .censo-input{width:100%;border:1.5px solid var(--azul-suave);border-radius:8px;padding:6px;font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--azul2);text-align:center;outline:none;background:var(--gris);pointer-events:none;}
 .censo-input.editable{pointer-events:all;background:white;border-color:var(--azul);}
 
 /* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,35,80,0.55);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,35,80,0.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;}
 .modal-overlay.active{display:flex;}
 .modal{background:white;border-radius:18px;padding:28px;max-width:400px;width:92%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
 .modal-icon{font-size:3rem;margin-bottom:12px;color:var(--azul);}
@@ -265,12 +284,21 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .btn-guardar:hover{background:var(--azul2);}
 .btn-limpiar{background:var(--gris);color:#666;border:1.5px solid #ddd;}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--azul);color:white;padding:12px 20px;border-radius:12px;font-weight:600;font-size:0.87rem;box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:9px;}
+/* TOAST (OPT: transition solo de transform/opacity, no "all") */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--azul);color:white;padding:12px 20px;border-radius:12px;font-weight:600;font-size:0.87rem;box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateY(80px);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;display:flex;align-items:center;gap:9px;pointer-events:none;}
 .toast i{font-size:1.25rem;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.error{background:#c0392b;}
 .toast.ok{background:#2e7d32;}
+
+/* OPT: en pantallas táctiles (celulares/tablets) se apagan los efectos
+   decorativos continuos, que gastan GPU y batería sin aportar nada. */
+@media (hover:none){
+  .pin-overlay::before,.pin-overlay::after,
+  .menu-screen::before,.menu-screen::after{animation:none;will-change:auto;}
+  .header::after{display:none;}
+  .modal-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(13,35,80,0.7);}
+}
 
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
@@ -421,7 +449,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <div class="search-card">
       <div class="search-label"><i class="ph-duotone ph-funnel"></i> Filtrar colegios</div>
       <div class="search-wrap">
-        <input type="text" class="search-input" id="listaSearch" placeholder="Buscar colegio..." oninput="renderLista()">
+        <!-- OPT: filtrado con debounce (antes reconstruía toda la lista en cada tecla) -->
+        <input type="text" class="search-input" id="listaSearch" placeholder="Buscar colegio..." oninput="renderListaDebounced()">
         <span class="search-icon"><i class="ph-duotone ph-magnifying-glass"></i></span>
       </div>
     </div>
@@ -457,6 +486,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   </div>
 </div>
 
+<!-- ══════ LIBRERÍAS (al final para no bloquear la primera pantalla) ══════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mojs/core@1.7.1/dist/mo.umd.js"></script>
+
 <script>
 // ══════ CONFIG ══════
 const PIN_CORRECTO = "2025";
@@ -474,40 +508,56 @@ let datos=[], contactos=[], senso=[];
 let colegioActual=null, censoActual=null;
 let chartInstance=null, modoEdicion=false, modoEdicionCenso=false;
 
-// ══════ EFECTOS VISUALES (GSAP · Anime.js · Mo.js · Bubbly) ══════
+// ══════ UTILIDADES DE RENDIMIENTO Y SEGURIDAD ══════
 var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// OPT: detecta si hay mouse real. En celular no se registran tilt 3D ni botones magnéticos.
+var FINE = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 function canG(){ return typeof gsap!=="undefined" && !REDUCED; }
-function canA(){ return typeof anime!=="undefined" && !REDUCED; }
+
+// OPT: espera a que el usuario deje de escribir antes de redibujar
+function debounce(fn,ms){ var t; return function(){ var a=arguments,s=this; clearTimeout(t); t=setTimeout(function(){ fn.apply(s,a); },ms); }; }
+// Escapa texto para HTML (evita que un nombre con < o " rompa la página)
+function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+// Escapa texto para pasarlo dentro de onclick="fn('...')"
+function jsArg(s){ return String(s==null?"":s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\r?\n/g,"\\n").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+// Escapa texto para usarlo en RegExp (antes, buscar "(" o "." rompía el buscador)
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
+function resaltar(texto,q){
+  var safe=escHtml(texto);
+  if(!q) return safe;
+  return safe.replace(new RegExp(escRe(escHtml(q)),"gi"),function(m){ return "<mark>"+m+"</mark>"; });
+}
 
 // Ícono Phosphor
 function ic(n,estilo){ return '<i class="ph-'+(estilo||"duotone")+' ph-'+n+'"></i>'; }
 
-// Contador animado (Anime.js). val === null → guion
+// Contador animado (antes Anime.js, ahora GSAP). val === null → guion
 function countEl(el,val,suffix){
   if(!el) return;
   suffix=suffix||"";
+  if(el._tw){ el._tw.kill(); el._tw=null; }
   if(val===null){ el.textContent="–"+suffix; return; }
-  if(!canA()||!val){ el.textContent=val+suffix; return; }
+  if(!canG()||!val){ el.textContent=val+suffix; return; }
   var o={v:0};
-  anime({targets:o,v:val,round:1,duration:900,easing:"easeOutExpo",update:function(){ el.textContent=o.v+suffix; }});
+  el._tw=gsap.to(o,{v:val,duration:.9,ease:"expo.out",onUpdate:function(){ el.textContent=Math.round(o.v)+suffix; }});
 }
 function countTo(id,val,suffix){ countEl(document.getElementById(id),val,suffix); }
 
-// Entrada escalonada de listas (GSAP)
+// Entrada escalonada de listas (GSAP) — solo los primeros elementos visibles
 function animList(container,sel){
   if(!canG()) return;
   var items=container.querySelectorAll(sel);
   if(!items.length) return;
-  gsap.from(Array.prototype.slice.call(items,0,14),{y:-8,opacity:0,duration:.28,stagger:.02,ease:"power2.out",clearProps:"all"});
+  gsap.from(Array.prototype.slice.call(items,0,10),{y:-8,opacity:0,duration:.25,stagger:.02,ease:"power2.out",clearProps:"opacity,transform"});
 }
 
 // Explosión de partículas (Mo.js)
 var burst=null;
 function initFx(){
-  if(typeof mojs==="undefined"||REDUCED) return;
+  if(typeof mojs==="undefined"||REDUCED||burst) return;
   burst=new mojs.Burst({
     parent:document.getElementById("fx"),
-    radius:{10:46}, count:9, angle:{0:30},
+    radius:{10:46}, count:FINE?9:6, angle:{0:30},
     children:{
       shape:"circle",
       fill:["#42A5F5","#FFD54F","#66BB6A","#FF7043","#BBDEFB"],
@@ -517,10 +567,8 @@ function initFx(){
   });
 }
 document.addEventListener("click",function(e){
-  // Partículas
   var t=e.target.closest(".btn,.hdr-btn,.back-btn,.icon-btn,.pin-key,.menu-sheets-btn,.lista-go,.menu-card");
   if(t&&burst){ burst.tune({x:e.clientX,y:e.clientY}).replay(); }
-  // Burbujas
   var b=e.target.closest(".bubbly");
   if(b&&!REDUCED){
     b.classList.remove("animate"); void b.offsetWidth; b.classList.add("animate");
@@ -531,35 +579,49 @@ document.addEventListener("click",function(e){
 // Menú: entrada, tilt 3D y rebote de ícono
 function introMenu(){
   if(!canG()) return;
-  gsap.from(".menu-header > *",{y:-24,opacity:0,duration:.6,stagger:.1,ease:"power3.out",clearProps:"all"});
-  gsap.from(".menu-sheets-btn",{scale:.8,opacity:0,duration:.5,delay:.25,ease:"back.out(2)",clearProps:"all"});
-  gsap.from(".menu-card",{y:50,opacity:0,scale:.9,duration:.7,delay:.2,stagger:.1,ease:"back.out(1.6)",clearProps:"all"});
+  gsap.from(".menu-header > *",{y:-24,opacity:0,duration:.6,stagger:.1,ease:"power3.out",clearProps:"opacity,transform"});
+  gsap.from(".menu-sheets-btn",{scale:.8,opacity:0,duration:.5,delay:.25,ease:"back.out(2)",clearProps:"opacity,transform"});
+  gsap.from(".menu-card",{y:50,opacity:0,scale:.9,duration:.7,delay:.2,stagger:.1,ease:"back.out(1.6)",clearProps:"opacity,transform"});
 }
+var menuFxListo=false;
 function initMenuFx(){
+  // OPT: en celular no hay mousemove útil; no se registra nada (ahorra listeners y tweens)
+  if(menuFxListo||!FINE) return;
+  menuFxListo=true;
   document.querySelectorAll(".menu-card").forEach(function(card){
     var icon=card.querySelector(".menu-card-icon");
+    var raf=0, ev=null;
     card.addEventListener("mousemove",function(e){
-      if(!canG()) return;
-      var r=card.getBoundingClientRect();
-      var px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
-      gsap.to(card,{rotationY:px*10,rotationX:-py*10,y:-6,transformPerspective:700,duration:.35,ease:"power2.out"});
+      ev=e;
+      if(raf||!canG()) return;
+      // OPT: como máximo un cálculo por cuadro, y overwrite para no acumular tweens
+      raf=requestAnimationFrame(function(){
+        raf=0;
+        var r=card.getBoundingClientRect();
+        var px=(ev.clientX-r.left)/r.width-.5, py=(ev.clientY-r.top)/r.height-.5;
+        gsap.to(card,{rotationY:px*10,rotationX:-py*10,y:-6,transformPerspective:700,duration:.35,ease:"power2.out",overwrite:"auto"});
+      });
     });
     card.addEventListener("mouseenter",function(){
-      if(canA()&&icon) anime({targets:icon,scale:[1,1.18,1],rotate:[0,-8,0],duration:800,easing:"easeOutElastic(1,.5)"});
+      if(canG()&&icon) gsap.fromTo(icon,{scale:1.18,rotation:-8},{scale:1,rotation:0,duration:.8,ease:"elastic.out(1,.5)",overwrite:true});
     });
     card.addEventListener("mouseleave",function(){
-      if(canG()) gsap.to(card,{rotationY:0,rotationX:0,y:0,duration:.6,ease:"elastic.out(1,.5)"});
+      if(canG()) gsap.to(card,{rotationY:0,rotationX:0,y:0,duration:.6,ease:"elastic.out(1,.5)",overwrite:"auto"});
     });
   });
-  // Botones magnéticos
   document.querySelectorAll(".hdr-btn,.menu-sheets-btn,.back-btn").forEach(function(b){
+    var raf=0, ev=null;
     b.addEventListener("mousemove",function(e){
-      if(!canG()) return;
-      var r=b.getBoundingClientRect();
-      gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.28,y:(e.clientY-r.top-r.height/2)*.28,scale:1.08,duration:.3,ease:"power2.out"});
+      ev=e;
+      if(raf||!canG()) return;
+      raf=requestAnimationFrame(function(){
+        raf=0;
+        var r=b.getBoundingClientRect();
+        gsap.to(b,{x:(ev.clientX-r.left-r.width/2)*.28,y:(ev.clientY-r.top-r.height/2)*.28,scale:1.08,duration:.3,ease:"power2.out",overwrite:"auto"});
+      });
     });
     b.addEventListener("mouseleave",function(){
-      if(canG()) gsap.to(b,{x:0,y:0,scale:1,duration:.6,ease:"elastic.out(1,.4)"});
+      if(canG()) gsap.to(b,{x:0,y:0,scale:1,duration:.6,ease:"elastic.out(1,.4)",overwrite:"auto"});
     });
   });
 }
@@ -580,7 +642,7 @@ document.addEventListener("keydown", function(e) {
 });
 
 function pulseDot(i){
-  if(canA()) anime({targets:"#d"+i,scale:[1,1.55,1],duration:450,easing:"easeOutElastic(1,.6)"});
+  if(canG()) gsap.fromTo("#d"+i,{scale:1.55},{scale:1,duration:.45,ease:"elastic.out(1,.6)",overwrite:true});
 }
 
 function pinKey(k) {
@@ -663,8 +725,12 @@ function irA(pantalla) {
     var scr=document.querySelector(".screen.active");
     if (pantalla==="menu") { introMenu(); }
     else {
-      gsap.fromTo(scr,{opacity:0,y:18},{opacity:1,y:0,duration:.4,ease:"power2.out",clearProps:"transform,opacity"});
-      if (pantalla==="lista") gsap.from("#listaContainer .lista-item",{x:-24,opacity:0,duration:.4,stagger:{amount:.5},ease:"power2.out",clearProps:"all"});
+      gsap.fromTo(scr,{opacity:0,y:18},{opacity:1,y:0,duration:.35,ease:"power2.out",clearProps:"transform,opacity"});
+      if (pantalla==="lista") {
+        // OPT: antes animaba TODOS los colegios; ahora solo los que se ven en pantalla
+        var items=Array.prototype.slice.call(document.querySelectorAll("#listaContainer .lista-item"),0,8);
+        if(items.length) gsap.from(items,{x:-24,opacity:0,duration:.35,stagger:.05,ease:"power2.out",clearProps:"opacity,transform"});
+      }
     }
   }
 }
@@ -675,14 +741,17 @@ function irAlCrmConColegio(idx) {
 function abrirSheets() { window.open(SHEETS_URL,"_blank"); }
 
 // ══════ BUSCADOR CRM ══════
+var buscadorListo=false;
 function initBuscador() {
+  if(buscadorListo) return;
+  buscadorListo=true;
   var input=document.getElementById("searchInput");
   var dd=document.getElementById("dropdown");
-  input.addEventListener("input", function() {
+  input.addEventListener("input", debounce(function() {
     var q=input.value.trim().toUpperCase();
     if (!q) { mostrarTodosEnDropdown(); return; }
     renderDropdown(datos.map(function(r,i){return {r:r,i:i};}).filter(function(x){return x.r[C.nombre].toUpperCase().includes(q);}), q);
-  });
+  },120));
   document.addEventListener("click", function(e){
     if (!e.target.closest("#screenCrm .search-wrap")) dd.style.display="none";
   });
@@ -692,14 +761,14 @@ function mostrarTodosEnDropdown() {
 }
 function renderDropdown(matches, q) {
   var dd=document.getElementById("dropdown");
+  var estabaCerrado = dd.style.display==="none";
   if (!matches.length) { dd.innerHTML='<div class="no-results">Sin coincidencias</div>'; dd.style.display="block"; return; }
   dd.innerHTML=matches.map(function(x){
-    var nom=x.r[C.nombre];
-    var hi=q ? nom.replace(new RegExp(q,"gi"),function(m){return "<mark>"+m+"</mark>";}) : nom;
-    return '<div class="dropdown-item" onclick="seleccionarColegio('+x.i+')"><span>'+hi+'</span></div>';
+    return '<div class="dropdown-item" onclick="seleccionarColegio('+x.i+')"><span>'+resaltar(x.r[C.nombre],q)+'</span></div>';
   }).join("");
   dd.style.display="block";
-  animList(dd,".dropdown-item");
+  // OPT: solo se anima al abrir, no en cada letra que se escribe
+  if (estabaCerrado) animList(dd,".dropdown-item");
 }
 
 // ══════ SELECCIONAR ══════
@@ -721,7 +790,7 @@ function toggleEdicion() {
   var banner=document.getElementById("editBanner");
   if (modoEdicion) {
     btnE.className="hdr-btn edit-active"; btnS.style.display="flex"; banner.classList.add("show");
-    if (canG()) gsap.from(banner,{y:-14,opacity:0,duration:.35,ease:"power2.out",clearProps:"all"});
+    if (canG()) gsap.from(banner,{y:-14,opacity:0,duration:.35,ease:"power2.out",clearProps:"opacity,transform"});
     habilitarCampos(true); mostrarToast("Edición activada");
   } else {
     btnE.className="hdr-btn"; btnS.style.display="none"; banner.classList.remove("show");
@@ -736,79 +805,81 @@ function habilitarCampos(on) {
 
 // ══════ FICHA ══════
 function renderFicha(r, idx) {
-  var v=function(i){return (r[i]||"").toString().replace(/'/g,"&#39;").replace(/"/g,"&quot;");};
   var vraw=function(i){return (r[i]||"").toString();};
 
   var nom=vraw(C.nombre).trim().toUpperCase();
   var cols=contactos.filter(function(c){return (c[0]||"").trim().toUpperCase()===nom;});
   var contactosHTML=cols.length ? cols.map(function(c){
-    var ini=(c[2]||"?")[0].toUpperCase();
+    var ini=escHtml((c[2]||"?")[0].toUpperCase());
     return '<div class="contact-card">'+
       '<div class="contact-header">'+
         '<div class="contact-avatar">'+ini+'</div>'+
-        '<div><div class="contact-name">'+(c[2]||"–")+'</div><div class="contact-cargo">'+(c[1]||"–")+'</div></div>'+
+        '<div><div class="contact-name">'+escHtml(c[2]||"–")+'</div><div class="contact-cargo">'+escHtml(c[1]||"–")+'</div></div>'+
       '</div>'+
       '<div class="contact-fields">'+
-        (c[3]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("envelope-simple")+' Correo</div><div class="contact-field-val">'+c[3]+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+c[3].replace(/'/g,"\\'")+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
-        (c[4]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("phone")+' Teléfono</div><div class="contact-field-val">'+c[4]+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+c[4]+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
+        (c[3]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("envelope-simple")+' Correo</div><div class="contact-field-val">'+escHtml(c[3])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[3])+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
+        (c[4]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("phone")+' Teléfono</div><div class="contact-field-val">'+escHtml(c[4])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[4])+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
       '</div></div>';
   }).join("") : '<div class="no-contactos">Sin contactos registrados</div>';
 
   var html='<div class="ficha-header">'+
-    '<div><div class="ficha-nombre">'+vraw(C.nombre)+'</div><div class="ficha-sub">'+vraw(C.ciudad)+' · ID: '+vraw(C.id)+'</div></div>'+
-    '<div class="ficha-tag">'+(vraw(C.tipo)||"–")+'</div>'+
+    '<div><div class="ficha-nombre">'+escHtml(vraw(C.nombre))+'</div><div class="ficha-sub">'+escHtml(vraw(C.ciudad))+' · ID: '+escHtml(vraw(C.id))+'</div></div>'+
+    '<div class="ficha-tag">'+escHtml(vraw(C.tipo)||"–")+'</div>'+
   '</div>'+
   '<div class="ficha-body">'+
     '<div class="sec-title">'+ic("identification-card")+' Identificación</div>'+
     '<div class="fields-grid">'+
-      fCopy("ID","f_id",v(C.id))+
-      fCopy("CRM","f_crm",v(C.crm))+
+      fCopy("ID","f_id",vraw(C.id))+
+      fCopy("CRM","f_crm",vraw(C.crm))+
       '<div class="field full"><label>Nombre del Colegio</label>'+
-        '<div class="field-row"><input id="f_nombre" value="'+v(C.nombre)+'"><button class="icon-btn copy" onclick="copiarTexto(\''+vraw(C.nombre).replace(/'/g,"\\'")+'\')" title="Copiar">'+ic("copy")+'</button></div>'+
+        '<div class="field-row"><input id="f_nombre" value="'+escHtml(vraw(C.nombre))+'"><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(vraw(C.nombre))+'\')" title="Copiar">'+ic("copy")+'</button></div>'+
       '</div>'+
-      fSimple("Ciudad","f_ciudad",v(C.ciudad))+
-      fSimple("Tipo","f_tipo",v(C.tipo))+
-      fSimple("Regional","f_regional",v(C.regional))+
-      fSimple("Canal de Venta","f_canal",v(C.canal))+
-      fSimple("Línea","f_linea",v(C.linea))+
-      fSimple("Estudiantes","f_est",v(C.estudiantes),"number")+
-      fSimple("Activo PIN","f_pin",v(C.pinActivo),"number")+
-      fSimple("N° Docentes","f_doc",v(C.docentes),"number")+
+      fSimple("Ciudad","f_ciudad",vraw(C.ciudad))+
+      fSimple("Tipo","f_tipo",vraw(C.tipo))+
+      fSimple("Regional","f_regional",vraw(C.regional))+
+      fSimple("Canal de Venta","f_canal",vraw(C.canal))+
+      fSimple("Línea","f_linea",vraw(C.linea))+
+      fSimple("Estudiantes","f_est",vraw(C.estudiantes),"number")+
+      fSimple("Activo PIN","f_pin",vraw(C.pinActivo),"number")+
+      fSimple("N° Docentes","f_doc",vraw(C.docentes),"number")+
     '</div>'+
     '<div class="sec-title">'+ic("users-three")+' Contactos del Colegio</div>'+
     contactosHTML+
     '<div class="sec-title">'+ic("books")+' Contenidos</div>'+
-    '<div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">'+vraw(C.contenidos)+'</textarea></div>'+
+    '<div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">'+escHtml(vraw(C.contenidos))+'</textarea></div>'+
     '<div class="sec-title">'+ic("briefcase")+' Datos Comercial</div>'+
-    fSimple("Comercial","f_com",v(C.comercial))+
-    fCopy("Celular","f_celCom",v(C.celCom))+
-    fCopy("Correo","f_correoCom",v(C.correoCom))+
+    fSimple("Comercial","f_com",vraw(C.comercial))+
+    fCopy("Celular","f_celCom",vraw(C.celCom))+
+    fCopy("Correo","f_correoCom",vraw(C.correoCom))+
     '<div class="sec-title">'+ic("globe-hemisphere-west")+' Asesores</div>'+
-    fSimple("Asesor Inglés","f_aIng",v(C.asesorIng))+
-    fCopy("Correo Inglés","f_cIng",v(C.correoIng))+
-    fCopy("Tel. Inglés","f_tIng",v(C.telIng))+
-    fSimple("Asesor Robótica","f_aRob",v(C.asesorRob))+
-    fCopy("Correo Robótica","f_cRob",v(C.correoRob))+
-    fCopy("Tel. Robótica","f_tRob",v(C.telRob))+
-    fSimple("Asesor Digital House","f_aDH",v(C.asesorDH))+
-    fCopy("Correo Digital House","f_cDH",v(C.correoDH))+
-    fCopy("Tel. Digital House","f_tDH",v(C.telDH))+
+    fSimple("Asesor Inglés","f_aIng",vraw(C.asesorIng))+
+    fCopy("Correo Inglés","f_cIng",vraw(C.correoIng))+
+    fCopy("Tel. Inglés","f_tIng",vraw(C.telIng))+
+    fSimple("Asesor Robótica","f_aRob",vraw(C.asesorRob))+
+    fCopy("Correo Robótica","f_cRob",vraw(C.correoRob))+
+    fCopy("Tel. Robótica","f_tRob",vraw(C.telRob))+
+    fSimple("Asesor Digital House","f_aDH",vraw(C.asesorDH))+
+    fCopy("Correo Digital House","f_cDH",vraw(C.correoDH))+
+    fCopy("Tel. Digital House","f_tDH",vraw(C.telDH))+
   '</div>';
 
-  document.getElementById("fichaCard").innerHTML=html;
+  var card=document.getElementById("fichaCard");
+  card.innerHTML=html;
   if(modoEdicion) habilitarCampos(true);
-  setTimeout(ajustarTextareas,50);
+  // OPT: ajusta solo el textarea de la ficha, en el siguiente cuadro
+  requestAnimationFrame(function(){ var t=document.getElementById("f_cont"); if(t) autoResize(t); });
   if (canG()) {
-    gsap.from("#fichaCard .ficha-header",{y:-16,opacity:0,duration:.4,ease:"power2.out",clearProps:"all"});
-    gsap.from("#fichaCard .ficha-body > *",{y:14,opacity:0,duration:.4,stagger:.02,ease:"power2.out",clearProps:"all"});
+    gsap.from(card.querySelector(".ficha-header"),{y:-16,opacity:0,duration:.35,ease:"power2.out",clearProps:"opacity,transform"});
+    // OPT: antes animaba ~40 elementos uno por uno (casi 1 s en celular). Ahora el cuerpo entra como bloque.
+    gsap.from(card.querySelector(".ficha-body"),{y:14,opacity:0,duration:.35,delay:.05,ease:"power2.out",clearProps:"opacity,transform"});
   }
 }
 
-function fSimple(label,id,val,type) {
-  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+val+'"></div>';
+function fSimple(label,id,raw,type) {
+  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"></div>';
 }
-function fCopy(label,id,val) {
-  return '<div class="field"><label>'+label+'</label><div class="field-row"><input id="'+id+'" value="'+val+'"><button class="icon-btn copy" onclick="copiarTexto(\''+val.replace(/'/g,"\\'").replace(/&quot;/g,'"').replace(/&#39;/g,"'")+'\')">'+ic("copy")+'</button></div></div>';
+function fCopy(label,id,raw) {
+  return '<div class="field"><label>'+label+'</label><div class="field-row"><input id="'+id+'" value="'+escHtml(raw)+'"><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(raw)+'\')">'+ic("copy")+'</button></div></div>';
 }
 
 // ══════ CREDENCIALES ══════
@@ -820,19 +891,20 @@ function renderCredenciales(r) {
     {label:"Usuario TM",val:v(C.usuTM),icon:ic("user")},
     {label:"Contraseña TM",val:v(C.passTM),icon:ic("key"),hidden:true}
   ].filter(function(c){return c.val;});
-  if(!creds.length){document.getElementById("credContent").innerHTML='<div class="cred-empty">Sin credenciales</div>';return;}
-  document.getElementById("credContent").innerHTML=creds.map(function(c,i){
+  var cont=document.getElementById("credContent");
+  if(!creds.length){cont.innerHTML='<div class="cred-empty">Sin credenciales</div>';return;}
+  cont.innerHTML=creds.map(function(c,i){
     return '<div class="cred-row">'+
       '<div class="cred-info">'+
         '<div class="cred-label">'+c.icon+' '+c.label+'</div>'+
-        '<div class="cred-val '+(c.hidden?"hidden":"")+'" id="credval-'+i+'">'+(c.hidden?"••••••••":c.val)+'</div>'+
+        '<div class="cred-val '+(c.hidden?"hidden":"")+'" id="credval-'+i+'">'+(c.hidden?"••••••••":escHtml(c.val))+'</div>'+
       '</div>'+
       '<div class="cred-actions">'+
-        (c.hidden?'<button class="icon-btn copy" onclick="toggleCred('+i+',\''+c.val.replace(/'/g,"\\'")+'\')">'+ic("eye")+'</button>':'')+
-        '<button class="icon-btn copy" onclick="copiarTexto(\''+c.val.replace(/'/g,"\\'")+'\')">'+ic("copy")+'</button>'+
+        (c.hidden?'<button class="icon-btn copy" onclick="toggleCred('+i+',\''+jsArg(c.val)+'\')">'+ic("eye")+'</button>':'')+
+        '<button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c.val)+'\')">'+ic("copy")+'</button>'+
       '</div></div>';
   }).join("");
-  if (canG()) gsap.from("#credContent .cred-row",{x:20,opacity:0,duration:.35,stagger:.06,ease:"power2.out",clearProps:"all"});
+  if (canG()) gsap.from(cont.querySelectorAll(".cred-row"),{x:20,opacity:0,duration:.3,stagger:.05,ease:"power2.out",clearProps:"opacity,transform"});
 }
 function toggleCred(i,val){
   var el=document.getElementById("credval-"+i);
@@ -846,10 +918,10 @@ function abrirModal(){
   if(colegioActual===null){mostrarToast("Selecciona un colegio","error");return;}
   document.getElementById("modalOverlay").classList.add("active");
   if (canG()) {
-    gsap.fromTo(".modal",{scale:.8,opacity:0,y:24},{scale:1,opacity:1,y:0,duration:.5,ease:"back.out(2)"});
+    gsap.fromTo(".modal",{scale:.8,opacity:0,y:24},{scale:1,opacity:1,y:0,duration:.45,ease:"back.out(2)"});
     gsap.fromTo(".modal-overlay",{opacity:0},{opacity:1,duration:.25});
+    gsap.fromTo(".modal-icon",{rotation:-12,scale:.6},{rotation:0,scale:1,duration:.8,ease:"elastic.out(1,.5)"});
   }
-  if (canA()) anime({targets:".modal-icon",rotate:[-12,0],scale:[.6,1],duration:800,easing:"easeOutElastic(1,.5)"});
 }
 function closeModal(){document.getElementById("modalOverlay").classList.remove("active");}
 async function confirmarGuardar(){
@@ -876,10 +948,12 @@ async function confirmarGuardar(){
 // ══════ LISTA COLEGIOS ══════
 function renderLista() {
   var q=(document.getElementById("listaSearch").value||"").trim().toUpperCase();
-  var filtrados=datos.filter(function(r){return !q||r[C.nombre].toUpperCase().includes(q);});
-  if(!filtrados.length){document.getElementById("listaContainer").innerHTML='<div class="ficha-empty"><span>'+ic("magnifying-glass")+'</span>Sin resultados</div>';return;}
-  document.getElementById("listaContainer").innerHTML=filtrados.map(function(r){
-    var idx=datos.indexOf(r);
+  var filtrados=[];
+  datos.forEach(function(r,idx){ if(!q||r[C.nombre].toUpperCase().includes(q)) filtrados.push({r:r,idx:idx}); });
+  var cont=document.getElementById("listaContainer");
+  if(!filtrados.length){cont.innerHTML='<div class="ficha-empty"><span>'+ic("magnifying-glass")+'</span>Sin resultados</div>';return;}
+  cont.innerHTML=filtrados.map(function(x){
+    var r=x.r, idx=x.idx;   // OPT: antes usaba datos.indexOf(r) dentro del bucle (recorría la lista n² veces)
     var v=function(i){return r[i]||"";};
     var creds=[];
     if(v(C.usuAdmin)){creds.push({label:"Admin",user:v(C.usuAdmin),pass:v(C.passAdmin)});}
@@ -888,49 +962,49 @@ function renderLista() {
       return '<div class="lista-cred">'+
         '<div class="lista-cred-info">'+
           '<div class="lista-cred-label">'+ic("user")+' '+c.label+'</div>'+
-          '<div class="lista-cred-val">'+c.user+'</div>'+
+          '<div class="lista-cred-val">'+escHtml(c.user)+'</div>'+
         '</div>'+
-        '<button class="icon-btn copy" onclick="copiarTexto(\''+c.user+'\')" title="Copiar usuario">'+ic("copy")+'</button>'+
+        '<button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c.user)+'\')" title="Copiar usuario">'+ic("copy")+'</button>'+
         '<div class="lista-cred-info" style="margin-left:4px">'+
           '<div class="lista-cred-label">'+ic("key")+' Contraseña</div>'+
-          '<div class="lista-cred-val">'+c.pass+'</div>'+
+          '<div class="lista-cred-val">'+escHtml(c.pass)+'</div>'+
         '</div>'+
-        '<button class="icon-btn copy" onclick="copiarTexto(\''+c.pass+'\')" title="Copiar contraseña">'+ic("copy")+'</button>'+
+        '<button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c.pass)+'\')" title="Copiar contraseña">'+ic("copy")+'</button>'+
       '</div>';
     }).join("") : '<span style="color:#aaa;font-size:0.82rem;font-style:italic">Sin credenciales</span>';
     return '<div class="lista-item">'+
       '<button class="lista-go" onclick="irAlCrmConColegio('+idx+')" title="Ver en CRM">'+ic("arrow-circle-right")+'</button>'+
       '<div class="lista-info">'+
-        '<div class="lista-ids">ID: '+v(C.id)+' · CRM: '+v(C.crm)+'</div>'+
-        '<div class="lista-nombre">'+v(C.nombre)+'</div>'+
+        '<div class="lista-ids">ID: '+escHtml(v(C.id))+' · CRM: '+escHtml(v(C.crm))+'</div>'+
+        '<div class="lista-nombre">'+escHtml(v(C.nombre))+'</div>'+
         '<div class="lista-creds">'+credsHTML+'</div>'+
       '</div>'+
     '</div>';
   }).join("");
 }
+var renderListaDebounced=debounce(renderLista,150);
 
 // ══════ CENSO ══════
-function mostrarTodosEnDropdownCenso() {
+function renderDropdownCenso(matches,q){
   var dd=document.getElementById("dropdownCenso");
-  dd.innerHTML=datos.map(function(r,i){
-    return '<div class="dropdown-item" onclick="seleccionarCenso('+i+')"><span>'+r[C.nombre]+'</span></div>';
+  var estabaCerrado = dd.style.display==="none";
+  dd.innerHTML=matches.map(function(x){
+    return '<div class="dropdown-item" onclick="seleccionarCenso('+x.i+')"><span>'+resaltar(x.r[C.nombre],q)+'</span></div>';
   }).join("");
-  dd.style.display="block";
-  animList(dd,".dropdown-item");
+  dd.style.display=matches.length?"block":"none";
+  if (matches.length && estabaCerrado) animList(dd,".dropdown-item");
+}
+function mostrarTodosEnDropdownCenso() {
+  renderDropdownCenso(datos.map(function(r,i){return {r:r,i:i};}),"");
 }
 document.addEventListener("click",function(e){
   if(!e.target.closest("#screenCenso .search-wrap")) document.getElementById("dropdownCenso").style.display="none";
 });
-document.getElementById("censoSearch").addEventListener("input",function(){
+document.getElementById("censoSearch").addEventListener("input",debounce(function(){
   var q=this.value.trim().toUpperCase();
-  var dd=document.getElementById("dropdownCenso");
   var matches=datos.map(function(r,i){return {r:r,i:i};}).filter(function(x){return x.r[C.nombre].toUpperCase().includes(q);});
-  dd.innerHTML=matches.map(function(x){
-    var hi=x.r[C.nombre].replace(new RegExp(q,"gi"),function(m){return "<mark>"+m+"</mark>";});
-    return '<div class="dropdown-item" onclick="seleccionarCenso('+x.i+')"><span>'+hi+'</span></div>';
-  }).join("");
-  dd.style.display=matches.length?"block":"none";
-});
+  renderDropdownCenso(matches,q);
+},120));
 
 function seleccionarCenso(idx) {
   censoActual=idx;
@@ -947,21 +1021,22 @@ function renderCenso(nombre, fila) {
   var html='<div class="censo-total">'+
     '<div class="censo-total-label">Total de Estudiantes</div>'+
     '<div class="censo-total-num">'+total+'</div>'+
-    '<div class="censo-total-sub">'+nombre+'</div>'+
+    '<div class="censo-total-sub">'+escHtml(nombre)+'</div>'+
   '</div>'+
   '<div class="censo-grid">';
   GRADOS.forEach(function(g,i){
     html+='<div class="censo-item">'+
       '<div class="censo-grado">'+g+'</div>'+
-      '<input class="censo-input" id="censo_'+i+'" type="number" value="'+(vals[i]||0)+'" oninput="recalcularTotal()">'+
+      '<input class="censo-input'+(modoEdicionCenso?" editable":"")+'" id="censo_'+i+'" type="number" inputmode="numeric" value="'+(parseInt(vals[i])||0)+'" oninput="recalcularTotal()">'+
     '</div>';
   });
   html+='</div>';
-  document.getElementById("censoContent").innerHTML=html;
-  countEl(document.querySelector(".censo-total-num"),total);
+  var cont=document.getElementById("censoContent");
+  cont.innerHTML=html;
+  countEl(cont.querySelector(".censo-total-num"),total);
   if (canG()) {
-    gsap.from(".censo-total",{scale:.92,opacity:0,duration:.5,ease:"back.out(1.8)",clearProps:"all"});
-    gsap.from(".censo-item",{y:20,opacity:0,duration:.4,stagger:.03,ease:"power2.out",clearProps:"all"});
+    gsap.from(cont.querySelector(".censo-total"),{scale:.92,opacity:0,duration:.45,ease:"back.out(1.8)",clearProps:"opacity,transform"});
+    gsap.from(cont.querySelector(".censo-grid"),{y:20,opacity:0,duration:.4,delay:.05,ease:"power2.out",clearProps:"opacity,transform"});
   }
 }
 
@@ -972,7 +1047,7 @@ function recalcularTotal() {
     if(el) total+=parseInt(el.value)||0;
   }
   var el=document.querySelector(".censo-total-num");
-  if(el) el.textContent=total;
+  if(el){ if(el._tw){el._tw.kill();el._tw=null;} el.textContent=total; }
 }
 
 function toggleEdicionCenso(){
@@ -982,7 +1057,7 @@ function toggleEdicionCenso(){
   var banner=document.getElementById("editBannerCenso");
   if(modoEdicionCenso){
     btnE.className="hdr-btn edit-active"; btnS.style.display="flex"; banner.classList.add("show");
-    if (canG()) gsap.from(banner,{y:-14,opacity:0,duration:.35,ease:"power2.out",clearProps:"all"});
+    if (canG()) gsap.from(banner,{y:-14,opacity:0,duration:.35,ease:"power2.out",clearProps:"opacity,transform"});
     document.querySelectorAll(".censo-input").forEach(function(el){el.classList.add("editable");});
     mostrarToast("Edición activada");
   } else {
@@ -1000,7 +1075,8 @@ async function guardarCenso(){
   var valores=[nomColegio];
   var total=0;
   for(var i=0;i<GRADOS.length;i++){
-    var val=parseInt(document.getElementById("censo_"+i)?.value)||0;
+    var el=document.getElementById("censo_"+i);
+    var val=parseInt(el?el.value:0)||0;
     valores.push(val); total+=val;
   }
   valores.push(total);
@@ -1025,10 +1101,12 @@ async function guardarCenso(){
 
 // ══════ GRÁFICA ══════
 function initChart(){
+  if(chartInstance||typeof Chart==="undefined") return;
   var ctx=document.getElementById("donaChart").getContext("2d");
-  chartInstance=new Chart(ctx,{type:"doughnut",data:{labels:["Activos","Por activar"],datasets:[{data:[0,1],backgroundColor:["#1565C0","#BBDEFB"],borderWidth:0,borderRadius:8,spacing:2}]},options:{cutout:"70%",plugins:{legend:{display:false}},animation:{duration:900,easing:"easeOutQuart"}}});
+  chartInstance=new Chart(ctx,{type:"doughnut",data:{labels:["Activos","Por activar"],datasets:[{data:[0,1],backgroundColor:["#1565C0","#BBDEFB"],borderWidth:0,borderRadius:8,spacing:2}]},options:{cutout:"70%",plugins:{legend:{display:false}},animation:REDUCED?false:{duration:FINE?900:600,easing:"easeOutQuart"}}});
 }
 function actualizarChart(r){
+  if(!chartInstance) return;
   if(!r){chartInstance.data.datasets[0].data=[0,1];chartInstance.update();document.getElementById("statEst").textContent="–";document.getElementById("statPin").textContent="–";document.getElementById("statPct").textContent="–%";return;}
   var est=parseInt(r[C.estudiantes])||0,pin=parseInt(r[C.pinActivo])||0;
   chartInstance.data.datasets[0].data=est>0?[pin,Math.max(0,est-pin)]:[0,1];chartInstance.update();
@@ -1039,15 +1117,18 @@ function actualizarChart(r){
 
 // ══════ UTILS ══════
 function autoResize(el){el.style.height="auto";el.style.height=el.scrollHeight+"px";}
-function ajustarTextareas(){document.querySelectorAll("textarea").forEach(function(t){autoResize(t);});}
+function ajustarTextareas(){document.querySelectorAll("#fichaCard textarea").forEach(function(t){autoResize(t);});}
 function copiarTexto(txt){navigator.clipboard.writeText(txt).then(function(){mostrarToast("Copiado","ok");}).catch(function(){});}
+var toastTimer=null;
 function mostrarToast(msg,tipo){
   var t=document.getElementById("toast");
   var icono=tipo==="ok"?"check-circle":(tipo==="error"?"warning-circle":"info");
   t.innerHTML=ic(icono)+"<span></span>";
   t.lastChild.textContent=msg;
   t.className="toast"+(tipo?" "+tipo:"")+" show";
-  setTimeout(function(){t.classList.remove("show");},3000);
+  // OPT: si llegan dos toasts seguidos, el primero ya no cierra al segundo antes de tiempo
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove("show");},3000);
 }
 </script>
 </body>
