@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRM Colegios</title>
 
+<!-- ══════ APP INSTALABLE (PWA) ══════ -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0D47A1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="CRM Colegios">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="img/icon-192.png">
+
 <!-- ══════ LIBRERÍAS ══════
      OPT: los <script> se movieron al final del <body> para que la pantalla del PIN
      aparezca sin esperar a que bajen ~400 KB de JavaScript.
@@ -131,7 +141,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .menu-card-icon{width:76px;height:76px;margin:0 auto 16px;border-radius:22px;display:grid;place-items:center;font-size:2.4rem;color:var(--azul2);background:linear-gradient(135deg,var(--azul-fondo),var(--azul-suave));}
 .menu-card-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--azul2);margin-bottom:6px;}
 .menu-card-desc{font-size:0.78rem;color:#888;}
-.menu-sheets{display:flex;justify-content:center;padding-bottom:30px;}
+.menu-sheets{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:0 16px 30px;}
 .menu-sheets-btn{background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);color:white;padding:10px 22px;border-radius:12px;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:8px;--b:rgba(255,255,255,.8);transition:background .2s;}
 .menu-sheets-btn:hover{background:rgba(255,255,255,0.35);}
 
@@ -442,6 +452,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<!-- INSTRUCCIONES PARA INSTALAR -->
+<div class="modal-overlay" id="modalInstalar" onclick="if(event.target===this)cerrarInstalar()">
+  <div class="modal" style="text-align:left">
+    <div class="modal-icon" style="text-align:center"><i class="ph-duotone ph-download-simple"></i></div>
+    <h3 style="text-align:center">Instalar en tu pantalla de inicio</h3>
+    <p style="margin-bottom:12px"><strong>iPhone / iPad (Safari):</strong><br>1. Toca <strong>Compartir</strong> (el cuadro con una flecha hacia arriba).<br>2. Elige <strong>«Agregar a pantalla de inicio»</strong>.<br>3. Toca <strong>Agregar</strong>.</p>
+    <p><strong>Android (Chrome):</strong><br>Toca el menú <strong>⋮</strong> y elige <strong>«Instalar app»</strong> o <strong>«Agregar a la pantalla de inicio»</strong>.</p>
+    <div class="modal-btns"><button class="btn btn-guardar" onclick="cerrarInstalar()">Entendido</button></div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -463,6 +484,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <p>Panel de gestión institucional</p>
   </div>
   <div class="menu-sheets">
+    <button class="menu-sheets-btn bubbly" id="btnInstalar" onclick="instalarApp()" style="display:none"><i class="ph-duotone ph-download-simple" style="font-size:1.2rem"></i> Instalar app</button>
     <button class="menu-sheets-btn bubbly" onclick="abrirSheets()"><i class="ph-duotone ph-table" style="font-size:1.2rem"></i> Abrir Google Sheets</button>
   </div>
   <div class="menu-grid">
@@ -1320,6 +1342,34 @@ function cancelarEdicionCenso(){
   if(modoEdicionCenso) toggleEdicionCenso();
   if(censoActual!==null) seleccionarCenso(censoActual);
   mostrarToast("Cambios descartados");
+}
+// ══════ INSTALAR COMO APP (PWA) ══════
+var evInstalar=null;
+var esApp = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone===true;
+var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+function mostrarBtnInstalar(){ var b=document.getElementById("btnInstalar"); if(b && !esApp) b.style.display="flex"; }
+// Chrome/Edge/Samsung avisan cuando la página se puede instalar: ahí aparece el botón
+window.addEventListener("beforeinstallprompt",function(e){ e.preventDefault(); evInstalar=e; mostrarBtnInstalar(); });
+window.addEventListener("appinstalled",function(){
+  evInstalar=null; var b=document.getElementById("btnInstalar"); if(b) b.style.display="none";
+  mostrarToast("App instalada","ok");
+});
+// iPhone no avisa: se muestra el botón y se explican los pasos
+if(esIOS) mostrarBtnInstalar();
+async function instalarApp(){
+  if(evInstalar){
+    evInstalar.prompt();
+    try{ await evInstalar.userChoice; }catch(e){}
+    evInstalar=null;
+    var b=document.getElementById("btnInstalar"); if(b) b.style.display="none";
+    return;
+  }
+  document.getElementById("modalInstalar").classList.add("active");
+}
+function cerrarInstalar(){ document.getElementById("modalInstalar").classList.remove("active"); }
+// El service worker solo funciona desde https (GitHub Pages lo es) o localhost
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
 }
 </script>
 </body>
