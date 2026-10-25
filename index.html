@@ -185,6 +185,22 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .field-row{display:flex;align-items:center;gap:6px;}
 .field-row input,.field-row textarea{flex:1;}
 
+/* ASESORES: cada uno en su tarjeta; los vacíos se ocultan salvo en modo edición */
+.asesor-grupo{background:var(--gris);border:1px solid var(--azul-suave);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.asesor-titulo{font-family:var(--font-display);font-size:.8rem;font-weight:700;color:var(--azul2);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.asesor-titulo i{font-size:1.1rem;color:var(--azul);}
+.asesor-grupo .fields-grid>.field:first-child{grid-column:1/-1;}
+.asesor-grupo .field input{background:white;}
+#fichaCard .asesor-grupo.vacio{display:none;}
+#fichaCard:not(.modo-edicion) .asesor-grupo .field.campo-vacio{display:none;}
+#fichaCard:not(.modo-edicion) .asesor-grupo .fields-grid{gap:8px;}
+#fichaCard.modo-edicion .asesor-grupo.vacio{display:block;border-style:dashed;opacity:.8;}
+.asesor-vacio-tag{margin-left:auto;font-family:var(--font-body);font-size:.65rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;display:none;}
+#fichaCard.modo-edicion .asesor-grupo.vacio .asesor-vacio-tag{display:inline;}
+.asesores-vacio{display:none;text-align:center;color:#aaa;padding:14px;font-style:italic;font-size:.85rem;}
+.asesores-vacio.show{display:block;}
+#fichaCard.modo-edicion .asesores-vacio{display:none;}
+
 /* CONTACTO */
 .contact-card{background:var(--gris);border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--azul-suave);}
 .contact-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -909,6 +925,10 @@ function habilitarCampos(on) {
   document.querySelectorAll("#fichaCard .field input:not([readonly]), #fichaCard .field textarea").forEach(function(el){
     if(on) el.classList.add("editable"); else el.classList.remove("editable");
   });
+  var card=document.getElementById("fichaCard");
+  if(card) card.classList.toggle("modo-edicion",!!on);
+  // Al salir de edición se recalcula: si agregaste un asesor, queda visible
+  marcarAsesores();
 }
 
 // ══════ FICHA ══════
@@ -960,20 +980,15 @@ function renderFicha(r, idx) {
     fCopy("Celular","f_celCom",vraw(C.celCom))+
     fCopy("Correo","f_correoCom",vraw(C.correoCom))+
     '<div class="sec-title">'+ic("globe-hemisphere-west")+' Asesores</div>'+
-    fSimple("Asesor Inglés","f_aIng",vraw(C.asesorIng))+
-    fCopy("Correo Inglés","f_cIng",vraw(C.correoIng))+
-    fCopy("Tel. Inglés","f_tIng",vraw(C.telIng))+
-    fSimple("Asesor Robótica","f_aRob",vraw(C.asesorRob))+
-    fCopy("Correo Robótica","f_cRob",vraw(C.correoRob))+
-    fCopy("Tel. Robótica","f_tRob",vraw(C.telRob))+
-    fSimple("Asesor Digital House","f_aDH",vraw(C.asesorDH))+
-    fCopy("Correo Digital House","f_cDH",vraw(C.correoDH))+
-    fCopy("Tel. Digital House","f_tDH",vraw(C.telDH))+
+    grupoAsesor("Inglés","translate",[fSimple("Asesor","f_aIng",vraw(C.asesorIng)),fCopy("Correo","f_cIng",vraw(C.correoIng)),fCopy("Teléfono","f_tIng",vraw(C.telIng))])+
+    grupoAsesor("Robótica","robot",[fSimple("Asesor","f_aRob",vraw(C.asesorRob)),fCopy("Correo","f_cRob",vraw(C.correoRob)),fCopy("Teléfono","f_tRob",vraw(C.telRob))])+
+    grupoAsesor("Digital House","laptop",[fSimple("Asesor","f_aDH",vraw(C.asesorDH)),fCopy("Correo","f_cDH",vraw(C.correoDH)),fCopy("Teléfono","f_tDH",vraw(C.telDH))])+
+    '<div class="asesores-vacio" id="asesoresVacio">Este colegio no tiene asesores asignados</div>'+
   '</div>';
 
   var card=document.getElementById("fichaCard");
   card.innerHTML=html;
-  if(modoEdicion) habilitarCampos(true);
+  habilitarCampos(modoEdicion);
   // OPT: ajusta solo el textarea de la ficha, en el siguiente cuadro
   requestAnimationFrame(function(){ var t=document.getElementById("f_cont"); if(t) autoResize(t); });
   if (canG()) {
@@ -985,6 +1000,26 @@ function renderFicha(r, idx) {
 
 function fSimple(label,id,raw,type) {
   return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"></div>';
+}
+function grupoAsesor(titulo,icono,campos){
+  return '<div class="asesor-grupo"><div class="asesor-titulo">'+ic(icono)+' '+titulo+'<span class="asesor-vacio-tag">Sin asignar</span></div>'+
+    '<div class="fields-grid">'+campos.join("")+'</div></div>';
+}
+// Marca como vacío el asesor que no tiene nombre, correo ni teléfono
+function marcarAsesores(){
+  var visibles=0;
+  document.querySelectorAll("#fichaCard .asesor-grupo").forEach(function(g){
+    var lleno=false;
+    g.querySelectorAll(".field").forEach(function(f){
+      var inp=f.querySelector("input"), tiene=!!(inp && inp.value.trim()!=="");
+      f.classList.toggle("campo-vacio",!tiene);   // al ver la ficha, los campos vacíos no se muestran
+      if(tiene) lleno=true;
+    });
+    g.classList.toggle("vacio",!lleno);
+    if(lleno) visibles++;
+  });
+  var msg=document.getElementById("asesoresVacio");
+  if(msg) msg.classList.toggle("show",visibles===0);
 }
 function fCopy(label,id,raw) {
   return '<div class="field"><label>'+label+'</label><div class="field-row"><input id="'+id+'" value="'+escHtml(raw)+'"><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(raw)+'\')">'+ic("copy")+'</button></div></div>';
