@@ -382,6 +382,23 @@ body.editando .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px));}
   .pin-key{padding:11px;}
 }
 
+/* ══════ FONDO CON IMAGEN (toda la aplicación) ══════
+   Las imágenes van en la carpeta "img", junto a este archivo.
+   Se usa un pseudo-elemento fijo en vez de background-attachment:fixed,
+   que en iPhone no funciona y hace lento el desplazamiento. */
+body{background:#4a2a8c;}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:#4a2a8c url("img/fondo.webp") center/cover no-repeat;}
+.pin-overlay{background:#4a2a8c url("img/fondo.webp") center/cover no-repeat;}
+@media (max-width:800px) and (orientation:portrait){
+  body::before,.pin-overlay{background-image:url("img/fondo-movil.webp");}
+}
+/* La imagen ya trae su propio diseño: se quitan las manchas animadas (y se ahorra trabajo al celular) */
+.pin-overlay::before,.pin-overlay::after,.menu-screen::before,.menu-screen::after{display:none;}
+.menu-screen{background:transparent;}
+/* Textos que quedan directamente sobre el fondo */
+#listaContainer>.ficha-empty,#censoContent>.ficha-empty{color:rgba(255,255,255,.9);}
+#listaContainer>.ficha-empty span,#censoContent>.ficha-empty span{color:rgba(255,255,255,.6);}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
