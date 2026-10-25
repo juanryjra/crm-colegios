@@ -77,7 +77,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .pin-logo{font-size:3.2rem;margin-bottom:10px;color:var(--azul);}
 .pin-title{font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--azul2);margin-bottom:4px;}
 .pin-sub{font-size:0.82rem;color:#888;margin-bottom:28px;}
-.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:28px;}
+.pin-dots{display:flex;justify-content:center;gap:11px;margin-bottom:28px;}
 .pin-dot{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--azul-suave);background:white;transition:background .2s,border-color .2s;}
 .pin-dot.filled{background:var(--azul);border-color:var(--azul);}
 .pin-dot.error{background:#e53935;border-color:#e53935;}
@@ -225,6 +225,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .chart-title{font-family:var(--font-display);font-size:0.7rem;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;text-align:center;display:flex;align-items:center;gap:6px;}
 .chart-title i{font-size:1.15rem;}
 .chart-wrap{width:100%;max-width:190px;}
+.chart-wrap canvas{max-width:100%;}
 .chart-stats{width:100%;margin-top:14px;}
 .stat-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gris);font-size:0.82rem;}
 .stat-row:last-child{border-bottom:none;}
@@ -300,6 +301,71 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
   .modal-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(13,35,80,0.7);}
 }
 
+/* ══════ BARRA DE GUARDADO (todas las pantallas) ══════
+   Aparece abajo al activar edición. En celular es la forma principal de guardar. */
+.edit-bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160%);width:min(560px,calc(100% - 24px));background:white;border-radius:16px;box-shadow:0 10px 40px rgba(13,35,80,.28);border:1px solid var(--azul-suave);padding:10px 10px 10px 16px;display:flex;align-items:center;gap:8px;z-index:500;opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.34,1.3,.64,1),opacity .2s;}
+.edit-bar.show{transform:translate(-50%,0);opacity:1;pointer-events:auto;}
+.edit-bar-txt{flex:1;min-width:0;font-weight:700;font-size:.85rem;color:#795548;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.edit-bar-txt i{font-size:1.1rem;flex-shrink:0;}
+.edit-bar .btn{min-height:44px;padding:10px 18px;justify-content:center;}
+body.editando .container{padding-bottom:110px;}
+body.editando .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px));}
+
+/* ══════ TABLET (601–800 px) ══════ */
+@media (min-width:601px) and (max-width:800px){
+  .right-col{display:grid;grid-template-columns:1fr 1fr;align-items:start;}
+}
+
+/* ══════ CELULAR (hasta 600 px) ══════ */
+@media (max-width:600px){
+  /* Cabecera compacta: antes no cabía y el botón de guardar quedaba fuera de la pantalla */
+  .header{padding:10px 12px;gap:8px;}
+  .header-text{min-width:0;flex:1 1 auto;margin-left:2px!important;}
+  .header-text h1{font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .header-text p{display:none;}
+  .back-btn{font-size:0;gap:0;padding:9px 11px;}
+  .back-btn i{font-size:1.15rem;}
+  .header-actions{gap:6px;flex-shrink:0;}
+  .hdr-btn{width:38px;height:38px;font-size:1.2rem;}
+  .hdr-badge{font-size:0;gap:0;padding:7px;}
+  .hdr-badge i{font-size:1rem;}
+  /* En celular se guarda desde la barra inferior; el banner superior se omite para ganar espacio */
+  #btnSave,#btnSaveCenso{display:none!important;}
+  .edit-banner.show{display:none;}
+  .container{padding:14px 12px;}
+  .search-card{padding:14px;}
+  .ficha-body{padding:16px;}
+  .ficha-header{padding:16px;}
+  .lista-cred{flex-wrap:wrap;width:100%;}
+  .lista-item{padding:14px 14px 14px 18px;gap:12px;}
+  .censo-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;}
+  .censo-total-num{font-size:2.8rem;}
+  .toast{left:12px;right:12px;justify-content:center;}
+  .modal-btns .btn{flex:1;justify-content:center;min-height:44px;}
+}
+@media (max-width:420px){
+  .edit-bar{padding:10px;}
+  .edit-bar-txt{display:none;}
+  .edit-bar .btn{flex:1;padding:10px 12px;}
+}
+
+/* ══════ PANTALLAS TÁCTILES ══════ */
+@media (hover:none),(max-width:800px){
+  /* iPhone hace zoom al tocar un campo con letra menor a 16px: eso descuadraba la pantalla al editar */
+  .field input,.field textarea,.search-input{font-size:16px;}
+  .icon-btn{width:36px;height:36px;}
+}
+
+/* ══════ CELULAR ACOSTADO / PANTALLAS BAJAS ══════ */
+@media (max-height:640px){
+  .pin-overlay{overflow-y:auto;align-items:flex-start;padding:12px 0;}
+  .pin-overlay::before,.pin-overlay::after{display:none;}
+  .pin-box{margin:auto;padding:20px 24px;}
+  .pin-logo{font-size:2.2rem;margin-bottom:4px;}
+  .pin-sub,.pin-dots{margin-bottom:14px;}
+  .pin-key{padding:11px;}
+}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -317,10 +383,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   <div class="pin-box">
     <div class="pin-logo"><i class="ph-duotone ph-lock-key"></i></div>
     <div class="pin-title">CRM Colegios Santillana</div>
-    <div class="pin-sub">Ingresa tu PIN de 4 dígitos</div>
+    <div class="pin-sub">Ingresa tu PIN de 6 dígitos</div>
     <div class="pin-dots">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d4"></div><div class="pin-dot" id="d5"></div>
     </div>
     <div class="pin-numpad" id="pinNumpad">
       <button class="pin-key" data-k="1"><span>1</span></button>
@@ -348,7 +415,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   <div class="modal">
     <div class="modal-icon"><i class="ph-duotone ph-floppy-disk"></i></div>
     <h3>Guardar cambios</h3>
-    <p>¿Deseas guardar los cambios en Google Sheets?</p>
+    <p>¿Deseas guardar los cambios en Excel?</p>
     <div class="modal-btns">
       <button class="btn btn-limpiar" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-guardar bubbly" onclick="confirmarGuardar()"><i class="ph-bold ph-check-circle"></i> Guardar</button>
@@ -364,7 +431,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <p>Panel de gestión institucional</p>
   </div>
   <div class="menu-sheets">
-    <button class="menu-sheets-btn bubbly" onclick="abrirSheets()"><i class="ph-duotone ph-table" style="font-size:1.2rem"></i> Abrir Google Sheets</button>
+    <button class="menu-sheets-btn bubbly" onclick="abrirSheets()"><i class="ph-duotone ph-table" style="font-size:1.2rem"></i> Abrir Excel</button>
   </div>
   <div class="menu-grid">
     <div class="menu-card" onclick="irA('crm')">
@@ -394,7 +461,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <p>Ficha institucional</p>
     </div>
     <div class="header-actions">
-      <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
+      <button class="hdr-btn" title="Excel" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
       <button class="hdr-btn" id="btnEdit" title="Activar edición" onclick="toggleEdicion()"><i class="ph-duotone ph-pencil-simple-line"></i></button>
       <button class="hdr-btn" id="btnSave" title="Guardar" onclick="abrirModal()" style="display:none"><i class="ph-duotone ph-floppy-disk"></i></button>
       <div class="hdr-badge" id="statusBadge"><i class="ph-duotone ph-gear"></i> Demo</div>
@@ -442,7 +509,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <p>Usuarios y contraseñas</p>
     </div>
     <div class="header-actions">
-      <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
+      <button class="hdr-btn" title="Excel" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
     </div>
   </div>
   <div class="container">
@@ -467,7 +534,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <p>Matrícula por grado</p>
     </div>
     <div class="header-actions">
-      <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
+      <button class="hdr-btn" title="Excel" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
       <button class="hdr-btn" id="btnEditCenso" title="Editar" onclick="toggleEdicionCenso()"><i class="ph-duotone ph-pencil-simple-line"></i></button>
       <button class="hdr-btn" id="btnSaveCenso" title="Guardar" onclick="guardarCenso()" style="display:none"><i class="ph-duotone ph-floppy-disk"></i></button>
     </div>
@@ -486,6 +553,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   </div>
 </div>
 
+<!-- BARRAS DE GUARDADO (fuera de las pantallas para que no las afecten las transiciones) -->
+<div class="edit-bar" id="editBarCrm" role="toolbar" aria-label="Guardar cambios de la ficha">
+  <div class="edit-bar-txt"><i class="ph-duotone ph-pencil-simple-line"></i><span>Editando ficha</span></div>
+  <button class="btn btn-limpiar" onclick="cancelarEdicion()">Cancelar</button>
+  <button class="btn btn-guardar bubbly" onclick="abrirModal()"><i class="ph-bold ph-floppy-disk"></i> Guardar</button>
+</div>
+<div class="edit-bar" id="editBarCenso" role="toolbar" aria-label="Guardar cambios del censo">
+  <div class="edit-bar-txt"><i class="ph-duotone ph-pencil-simple-line"></i><span>Editando censo</span></div>
+  <button class="btn btn-limpiar" onclick="cancelarEdicionCenso()">Cancelar</button>
+  <button class="btn btn-guardar bubbly" onclick="guardarCenso()"><i class="ph-bold ph-floppy-disk"></i> Guardar</button>
+</div>
+
 <!-- ══════ LIBRERÍAS (al final para no bloquear la primera pantalla) ══════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -493,14 +572,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
 <script>
 // ══════ CONFIG ══════
-// SEGURIDAD: el PIN y la API key ya no están aquí. El PIN se valida en el Apps Script
-// y los datos solo se entregan con un token de sesión válido.
-let TOKEN = null;
-const CONFIG = {
-  sheetId: "1RCNyiHto-QRJjrdiDO3trl-MajouzlcCLnc1hMW0EIU",
-  scriptUrl: "https://script.google.com/macros/s/AKfycbyAzur-9Gc4RER17iUqtpS_7q2RgKW_ie47BCp9dcqQxEeNSyrqFDYUYZGHcxhjlk7W/exec"
-};
-const SHEETS_URL = "https://docs.google.com/spreadsheets/d/" + CONFIG.sheetId;
+// CONEXIÓN: el Excel de OneDrive se lee y se escribe mediante un flujo de Power Automate.
+// El PIN NO está escrito aquí: lo valida el flujo y viaja en cada petición.
+const FLOW_URL = "https://default7516bb18282c4e63b1ec795805f1e8.fd.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/26/workflows/a651180cadff463e9db922a332791dc1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KWc6AN0pjsNK3JkqZ7e_NQ8odCQZ6BB94z9TcKmpUeo";
+const EXCEL_URL = "";   // opcional: pega aquí el enlace de tu Excel en OneDrive para el botón "Abrir Excel"
+let PIN_SESION = null;  // se guarda solo en memoria mientras la página está abierta
+const PIN_LEN = 6;
 const GRADOS = ["Pre kind","Kinder","Transición","1","2","3","4","5","6","7","8","9","10","11"];
 
 const C = {id:0,crm:1,nombre:2,ciudad:3,tipo:4,regional:5,comercial:6,celCom:7,correoCom:8,usuAdmin:9,passAdmin:10,usuTM:11,passTM:12,contenidos:13,estudiantes:14,pinActivo:15,docentes:16,asesorIng:17,correoIng:18,telIng:19,asesorRob:20,correoRob:21,telRob:22,asesorDH:23,correoDH:24,telDH:25,canal:26,linea:27};
@@ -628,7 +705,7 @@ function initMenuFx(){
 }
 
 // ══════ PIN ══════
-let pinActual="", pinBloqueado=false;
+let pinActual="", pinBloqueado=false, pinFallos=0;
 
 document.getElementById("pinNumpad").addEventListener("click", function(e) {
   var btn = e.target.closest("[data-k]");
@@ -650,9 +727,9 @@ function pinKey(k) {
   if (pinBloqueado) return;
   if (k==="C") { pinActual=""; actualizarDots(false); mensajePin(""); return; }
   if (k==="B") { pinActual=pinActual.slice(0,-1); actualizarDots(false); return; }
-  if (pinActual.length>=4) return;
+  if (pinActual.length>=PIN_LEN) return;
   pinActual+=k; actualizarDots(false); pulseDot(pinActual.length-1);
-  if (pinActual.length===4) {
+  if (pinActual.length===PIN_LEN) {
     pinBloqueado=true;
     verificarPin(pinActual);
   }
@@ -668,10 +745,10 @@ async function verificarPin(pin){
   try {
     res=await llamarScript({accion:"login",pin:pin});
   } catch(e) {
-    res={ok:false,error:"Sin conexión. Revisa internet e intenta de nuevo."};
+    res={ok:false,error:"No se pudo conectar con el flujo. Revisa internet y que el flujo esté activado."};
   }
   if (res.ok) {
-    TOKEN=res.token;
+    PIN_SESION=pin; pinFallos=0;
     mensajePin("");
     var ov=document.getElementById("pinOverlay");
     if (canG()) {
@@ -684,29 +761,30 @@ async function verificarPin(pin){
   } else {
     actualizarDots(true);
     if (canG()) gsap.fromTo(".pin-box",{x:-12},{x:0,duration:.6,ease:"elastic.out(1,.25)"});
-    mensajePin(res.error||"PIN incorrecto. Intenta de nuevo.");
-    setTimeout(function(){ pinActual=""; pinBloqueado=false; actualizarDots(false); },900);
+    pinFallos++; var espera=pinFallos>=5?30000:900; mensajePin(pinFallos>=5?"Demasiados intentos. Espera 30 segundos.":(res.error||"PIN incorrecto. Intenta de nuevo."));
+    setTimeout(function(){ if(pinFallos>=5) pinFallos=0; pinActual=""; pinBloqueado=false; actualizarDots(false); },espera);
   }
 }
 // Si la sesión vence (6 h) o el servidor la rechaza, se vuelve a pedir el PIN
 function sesionExpirada(){
-  TOKEN=null;
+  PIN_SESION=null;
   closeModal();
   pinActual=""; pinBloqueado=false; actualizarDots(false);
   var ov=document.getElementById("pinOverlay");
   ov.style.display="";
-  mensajePin("Tu sesión expiró. Ingresa el PIN de nuevo.");
+  mensajePin("El PIN ya no es válido. Ingrésalo de nuevo.");
 }
 // Toda comunicación con Google pasa por aquí
 async function llamarScript(payload){
-  if (payload.accion!=="login") payload.token=TOKEN;
-  var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify(payload)});
+  if (payload.accion!=="login") payload.pin=PIN_SESION;
+  // El cuerpo va como texto plano: así el navegador no hace la consulta previa (preflight) que Power Automate no responde
+  var resp=await fetch(FLOW_URL,{method:"POST",body:JSON.stringify(payload)});
   var res=await resp.json();
   if (res.error==="auth") { sesionExpirada(); throw new Error("auth"); }
   return res;
 }
 function actualizarDots(error) {
-  for (var i=0;i<4;i++) {
+  for (var i=0;i<PIN_LEN;i++) {
     var d=document.getElementById("d"+i);
     d.className="pin-dot"+(i<pinActual.length?(error?" error":" filled"):"");
   }
@@ -716,6 +794,29 @@ function actualizarDots(error) {
 function setStatus(ok){
   document.getElementById("statusBadge").innerHTML = ok ? ic("check-circle")+" Conectado" : ic("gear")+" Demo";
 }
+// Excel puede devolver números o nulos; el resto del código espera texto
+function norm(rows){ return (rows||[]).map(function(r){ return (r||[]).map(function(v){ return v==null?"":String(v); }); }); }
+function aplicarDatos(res){
+  datos=[];
+  norm(res.datos).forEach(function(r,i){ if(r[2]){ r._fila=i; datos.push(r); } });
+  contactos=norm(res.contactos);
+  senso=norm(res.senso).map(function(r,i){ r._fila=i; return r; });
+}
+// Tras guardar el censo, Excel recalcula Estudiantes y Pines Activos: se vuelven a leer
+async function refrescarDatos(){
+  try {
+    var res=await llamarScript({accion:"leer"});
+    if(!res.ok) return;
+    aplicarDatos(res);
+    if(colegioActual!==null && datos[colegioActual]){
+      var r=datos[colegioActual];
+      actualizarChart(r);
+      var e=document.getElementById("f_est"), p=document.getElementById("f_pin");
+      if(e) e.value=r[C.estudiantes]||"";
+      if(p) p.value=r[C.pinActivo]||"";
+    }
+  } catch(e){}
+}
 async function init() {
   initFx();
   initMenuFx();
@@ -723,11 +824,8 @@ async function init() {
   if (!datos.length) {
     try {
       var res=await llamarScript({accion:"leer"});
-      if (!res.ok) throw new Error(res.error||"Error al leer Google Sheets");
-      datos=[];
-      (res.datos||[]).forEach(function(r,i){if(r[2]){r._fila=i;datos.push(r);}});
-      contactos=res.contactos||[];
-      senso=(res.senso||[]).map(function(r,i){r._fila=i;return r;});
+      if (!res.ok) throw new Error(res.error||"Error al leer el Excel");
+      aplicarDatos(res);
       if (!datos.length) throw new Error("No se encontraron colegios en la hoja Datos");
       setStatus(true);
     } catch(e) {
@@ -768,7 +866,10 @@ function irAlCrmConColegio(idx) {
   irA("crm");
   setTimeout(function(){ seleccionarColegio(idx); },100);
 }
-function abrirSheets() { window.open(SHEETS_URL,"_blank"); }
+function abrirSheets() {
+  if (!EXCEL_URL) { mostrarToast("Falta pegar el enlace del Excel en EXCEL_URL","error"); return; }
+  window.open(EXCEL_URL,"_blank","noopener");
+}
 
 // ══════ BUSCADOR CRM ══════
 var buscadorListo=false;
@@ -869,8 +970,8 @@ function renderFicha(r, idx) {
       fSimple("Regional","f_regional",vraw(C.regional))+
       fSimple("Canal de Venta","f_canal",vraw(C.canal))+
       fSimple("Línea","f_linea",vraw(C.linea))+
-      fSimple("Estudiantes","f_est",vraw(C.estudiantes),"number")+
-      fSimple("Activo PIN","f_pin",vraw(C.pinActivo),"number")+
+      fSimple("Estudiantes (automático)","f_est",vraw(C.estudiantes),"number",true)+
+      fSimple("Pines activos (automático)","f_pin",vraw(C.pinActivo),"number",true)+
       fSimple("N° Docentes","f_doc",vraw(C.docentes),"number")+
     '</div>'+
     '<div class="sec-title">'+ic("users-three")+' Contactos del Colegio</div>'+
@@ -905,8 +1006,8 @@ function renderFicha(r, idx) {
   }
 }
 
-function fSimple(label,id,raw,type) {
-  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"></div>';
+function fSimple(label,id,raw,type,ro) {
+  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"'+(ro?' readonly title="Se calcula solo en el Excel"':'')+'></div>';
 }
 function fCopy(label,id,raw) {
   return '<div class="field"><label>'+label+'</label><div class="field-row"><input id="'+id+'" value="'+escHtml(raw)+'"><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(raw)+'\')">'+ic("copy")+'</button></div></div>';
@@ -958,6 +1059,7 @@ async function confirmarGuardar(){
   closeModal();
   var g=function(id){var el=document.getElementById(id);return el?el.value:"";};
   var r=datos[colegioActual];
+  if(!r[C.id]){ mostrarToast("Este colegio no tiene ID en el Excel. Agrégale un ID para poder guardar","error"); return; }
   var filaSheet=datos[colegioActual]._fila;
   var fila=[r[C.id],r[C.crm],g("f_nombre"),g("f_ciudad"),g("f_tipo"),g("f_regional"),g("f_com"),g("f_celCom"),g("f_correoCom"),r[C.usuAdmin],r[C.passAdmin],r[C.usuTM],r[C.passTM],g("f_cont"),g("f_est"),g("f_pin"),g("f_doc"),g("f_aIng"),g("f_cIng"),g("f_tIng"),g("f_aRob"),g("f_cRob"),g("f_tRob"),g("f_aDH"),g("f_cDH"),g("f_tDH"),g("f_canal"),g("f_linea")];
   fila._fila=filaSheet;
@@ -965,9 +1067,9 @@ async function confirmarGuardar(){
   actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
   mostrarToast("Guardando...");
   try {
-    var res=await llamarScript({accion:"datos",tipo:"datos",hoja:"Datos",fila:filaSheet,valores:fila});
+    var res=await llamarScript({accion:"datos",valores:fila});
     if(res.success && res.hoja && res.hoja!=="Datos"){
-      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de Datos. Actualiza google-apps-script.gs","error");
+      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de Datos. Revisa el flujo","error");
       return;
     }
     mostrarToast(res.success?"Guardado en hoja Datos":(res.error||"Error al guardar"),res.success?"ok":"error");
@@ -1113,20 +1215,22 @@ async function guardarCenso(){
   }
   valores.push(total);
   var idx=senso.findIndex(function(s){return (s[0]||"").trim().toUpperCase()===nomBuscar;});
+  if(idx>=0) valores[0]=senso[idx][0];   // misma escritura exacta que tiene el Excel (evita filas duplicadas)
   var filaNum;
   if(idx>=0){filaNum=senso[idx]._fila;}
   else{filaNum=senso.length;}
   valores._fila=filaNum;
   if(idx>=0) senso[idx]=valores; else senso.push(valores);
   toggleEdicionCenso();
-  mostrarToast("Guardando censo en SENSO...");
+  mostrarToast("Guardando censo en CENSO...");
   try {
-    var res=await llamarScript({accion:"senso",tipo:"senso",hoja:"SENSO",fila:filaNum,valores:valores});
-    if(res.success && res.hoja && res.hoja!=="SENSO"){
-      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de SENSO. Actualiza google-apps-script.gs","error");
+    var res=await llamarScript({accion:"censo",valores:valores});
+    if(res.success && res.hoja && res.hoja!=="CENSO"){
+      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de CENSO. Revisa el flujo","error");
       return;
     }
-    mostrarToast(res.success?"Censo guardado en hoja SENSO":(res.error||"Error al guardar"),res.success?"ok":"error");
+    mostrarToast(res.success?"Censo guardado en hoja CENSO":(res.error||"Error al guardar"),res.success?"ok":"error");
+    if(res.success) setTimeout(refrescarDatos,2500);
   } catch(e){
     if(e.message==="auth") mostrarToast("Sesión expirada: ingresa el PIN y vuelve a guardar","error");
     else mostrarToast("Error de conexión","error");
@@ -1163,6 +1267,33 @@ function mostrarToast(msg,tipo){
   // OPT: si llegan dos toasts seguidos, el primero ya no cierra al segundo antes de tiempo
   clearTimeout(toastTimer);
   toastTimer=setTimeout(function(){t.classList.remove("show");},3000);
+}
+// ══════ BARRAS DE GUARDADO ══════
+// Se muestran solo en la pantalla que se está editando
+function actualizarBarras(){
+  var crm=document.getElementById("screenCrm").classList.contains("active");
+  var cen=document.getElementById("screenCenso").classList.contains("active");
+  var a=modoEdicion&&crm, b=modoEdicionCenso&&cen;
+  document.getElementById("editBarCrm").classList.toggle("show",a);
+  document.getElementById("editBarCenso").classList.toggle("show",b);
+  document.body.classList.toggle("editando",a||b);
+}
+var _toggleEdicion=toggleEdicion;
+toggleEdicion=function(){ _toggleEdicion(); actualizarBarras(); };
+var _toggleEdicionCenso=toggleEdicionCenso;
+toggleEdicionCenso=function(){ _toggleEdicionCenso(); actualizarBarras(); };
+var _irA=irA;
+irA=function(p){ _irA(p); actualizarBarras(); };
+// Cancelar descarta lo escrito y vuelve a mostrar los datos guardados
+function cancelarEdicion(){
+  if(modoEdicion) toggleEdicion();
+  if(colegioActual!==null && datos[colegioActual]) renderFicha(datos[colegioActual],colegioActual);
+  mostrarToast("Cambios descartados");
+}
+function cancelarEdicionCenso(){
+  if(modoEdicionCenso) toggleEdicionCenso();
+  if(censoActual!==null) seleccionarCenso(censoActual);
+  mostrarToast("Cambios descartados");
 }
 </script>
 </body>
