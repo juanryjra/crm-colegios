@@ -874,7 +874,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 let TOKEN = null;
 const CONFIG = {
   sheetId: "1RCNyiHto-QRJjrdiDO3trl-MajouzlcCLnc1hMW0EIU",
-  scriptUrl: "https://script.google.com/macros/s/AKfycbyAzur-9Gc4RER17iUqtpS_7q2RgKW_ie47BCp9dcqQxEeNSyrqFDYUYZGHcxhjlk7W/exec"
+  scriptUrl: "https://script.google.com/macros/s/AKfycbwhf-zGxSIQZ34F6aepg7oCIqmtvXvGtnzBikUdEgCLc4JSDwnSVfwTROxmVkbXre-m/exec"
 };
 const SHEETS_URL = "https://docs.google.com/spreadsheets/d/" + CONFIG.sheetId;
 const GRADOS = ["Pre kind","Kinder","Transición","1","2","3","4","5","6","7","8","9","10","11"];
@@ -1108,7 +1108,7 @@ async function init() {
     } catch(e) {
       if (e.message==="auth") return;
       setStatus(false);
-      mostrarToast("No se pudieron cargar los datos. Usando demo","error");
+      mostrarToast("No se pudieron cargar los datos: "+(e.message==="Failed to fetch"?"sin conexión con el script":e.message),"error",9000);
       datos=[["12027","13975","COLEGIO DE DEMOSTRACIÓN","Bogotá","AA","BOGOTÁ SUR","Comercial demo","","","usuario.demo","demo","usuario.demo.tm","demo","1 a 5 Lenguaje + cartilla\n1 a 11 SET XXI","381","","","Coach","","","Asesor demo","","","","","",""]];
       contactos=[["COLEGIO DE DEMOSTRACIÓN","Coordinador","Contacto demo","correo@ejemplo.com","3000000000"]];
       senso=[["COLEGIO DE DEMOSTRACIÓN","","","","50","48","45","52","40","38","35","30","28","25","20","411"]];
@@ -1559,7 +1559,7 @@ function mostrarToast(msg,tipo){
   t.className="toast"+(tipo?" "+tipo:"")+" show";
   // OPT: si llegan dos toasts seguidos, el primero ya no cierra al segundo antes de tiempo
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(function(){t.classList.remove("show");},3000);
+  toastTimer=setTimeout(function(){t.classList.remove("show");},arguments[2]||3000);
 }
 // ══════ BARRAS DE GUARDADO ══════
 // Se muestran solo en la pantalla que se está editando
