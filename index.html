@@ -579,6 +579,17 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   .hp-btn{width:46px;} .hp-val{min-width:48px;font-size:1.8rem;} .hp-ap{padding:9px 9px;}
 }
 
+/* Reloj: lista de números */
+.hp-val{cursor:pointer;border-radius:10px;transition:background-color .15s;}
+.hp-val:hover,.hp-val.abierto{background:white;box-shadow:0 0 0 2px var(--azul-claro);}
+.hp-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin-top:8px;max-height:216px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px;background:white;border:1.5px solid var(--azul-suave);border-radius:12px;}
+.hp-grid.show{display:grid;}
+.hp-op{border:none;background:var(--gris);color:var(--azul2);border-radius:9px;padding:10px 0;font-family:var(--font-display);font-weight:700;font-size:.95rem;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;}
+.hp-op:hover{background:var(--azul-fondo);}
+.hp-op.activo{background:var(--azul);color:#fff;}
+.hp-ayuda{font-size:.72rem;color:#999;margin-top:6px;text-align:center;}
+.hp-btn{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -677,21 +688,23 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
           <label>Hora</label>
           <div class="hora-picker">
             <div class="hp-col">
-              <button type="button" class="hp-btn" onclick="hpCambiar('h',1)" aria-label="Subir hora"><i class="ph-bold ph-caret-up"></i></button>
-              <div class="hp-val" id="hpH">09</div>
-              <button type="button" class="hp-btn" onclick="hpCambiar('h',-1)" aria-label="Bajar hora"><i class="ph-bold ph-caret-down"></i></button>
+              <button type="button" class="hp-btn" data-campo="h" data-d="1" aria-label="Subir hora"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpH" role="button" tabindex="0" title="Toca para elegir la hora" onclick="hpGrid('h')">09</div>
+              <button type="button" class="hp-btn" data-campo="h" data-d="-1" aria-label="Bajar hora"><i class="ph-bold ph-caret-down"></i></button>
             </div>
             <div class="hp-sep">:</div>
             <div class="hp-col">
-              <button type="button" class="hp-btn" onclick="hpCambiar('m',1)" aria-label="Subir minutos"><i class="ph-bold ph-caret-up"></i></button>
-              <div class="hp-val" id="hpM">00</div>
-              <button type="button" class="hp-btn" onclick="hpCambiar('m',-1)" aria-label="Bajar minutos"><i class="ph-bold ph-caret-down"></i></button>
+              <button type="button" class="hp-btn" data-campo="m" data-d="1" aria-label="Subir minutos"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpM" role="button" tabindex="0" title="Toca para elegir los minutos" onclick="hpGrid('m')">00</div>
+              <button type="button" class="hp-btn" data-campo="m" data-d="-1" aria-label="Bajar minutos"><i class="ph-bold ph-caret-down"></i></button>
             </div>
             <div class="hp-ampm">
               <button type="button" class="hp-ap" id="hpAm" onclick="hpAmPm(false)">a. m.</button>
               <button type="button" class="hp-ap" id="hpPm" onclick="hpAmPm(true)">p. m.</button>
             </div>
           </div>
+          <div class="hp-grid" id="hpGrid"></div>
+          <div class="hp-ayuda">Toca un número para elegirlo de la lista, o mantén presionada una flecha para avanzar rápido.</div>
           <input type="hidden" id="tHora">
         </div>
         <div class="form-row">
@@ -2147,18 +2160,53 @@ async function activarNotificaciones(){
 var hp={h:9,m:0,pm:false};
 function fijarFechaHora(d){
   document.getElementById("tFecha").value=fechaISO(d);
-  var H=d.getHours(), m=Math.round(d.getMinutes()/5)*5;
-  if(m===60) m=55;
-  hp.pm=H>=12; hp.h=(H%12)||12; hp.m=m;
+  var H=d.getHours();
+  hp.pm=H>=12; hp.h=(H%12)||12; hp.m=d.getMinutes();
   hpPintar();
 }
 function hpCambiar(campo,delta){
   if(campo==="h") hp.h=((hp.h-1+delta+12)%12)+1;
-  else hp.m=(hp.m+delta*5+60)%60;
+  else hp.m=(hp.m+delta+60)%60;
   hpPintar();
-  if(navigator.vibrate) navigator.vibrate(8);
 }
 function hpAmPm(pm){ hp.pm=pm; hpPintar(); }
+// Lista para tocar: horas 1–12 o minutos 00–59
+function hpGrid(campo){
+  var g=document.getElementById("hpGrid");
+  var abierto=g.classList.contains("show")&&g.getAttribute("data-campo")===campo;
+  document.getElementById("hpH").classList.remove("abierto"); document.getElementById("hpM").classList.remove("abierto");
+  if(abierto){ g.classList.remove("show"); g.setAttribute("data-campo",""); return; }
+  var vals=[], actual=campo==="h"?hp.h:hp.m;
+  if(campo==="h") for(var i=1;i<=12;i++) vals.push(i); else for(var j=0;j<60;j++) vals.push(j);
+  g.innerHTML=vals.map(function(v){ return '<button type="button" class="hp-op'+(v===actual?' activo':'')+'" onclick="hpElegir(\''+campo+'\','+v+')">'+String(v).padStart(2,"0")+'</button>'; }).join("");
+  g.setAttribute("data-campo",campo); g.classList.add("show");
+  document.getElementById(campo==="h"?"hpH":"hpM").classList.add("abierto");
+  var sel=g.querySelector(".activo"); if(sel) g.scrollTop=Math.max(0,sel.offsetTop-g.clientHeight/2+sel.offsetHeight/2);
+  try{ g.scrollIntoView({block:"nearest",behavior:REDUCED?"auto":"smooth"}); }catch(e){ g.scrollIntoView(false); }
+}
+function hpElegir(campo,v){
+  if(campo==="h") hp.h=v; else hp.m=v;
+  var g=document.getElementById("hpGrid"); g.classList.remove("show"); g.setAttribute("data-campo","");
+  document.getElementById("hpH").classList.remove("abierto"); document.getElementById("hpM").classList.remove("abierto");
+  hpPintar();
+}
+// Flechas: un toque = 1; mantener presionado = avanza solo, cada vez más rápido
+(function(){
+  var timer=null, vueltas=0;
+  function parar(){ if(timer){ clearTimeout(timer); timer=null; } }
+  function paso(b){ hpCambiar(b.getAttribute("data-campo"),parseInt(b.getAttribute("data-d"),10)); }
+  document.addEventListener("pointerdown",function(e){
+    var b=e.target.closest(".hp-btn"); if(!b) return;
+    e.preventDefault(); parar(); vueltas=0; paso(b);
+    if(navigator.vibrate) navigator.vibrate(8);
+    (function repetir(espera){ timer=setTimeout(function(){ vueltas++; paso(b); repetir(vueltas>12?45:(vueltas>4?80:130)); },espera); })(420);
+  });
+  ["pointerup","pointercancel","blur"].forEach(function(ev){ document.addEventListener(ev,parar,true); });
+  // Solo se detiene si el dedo o el mouse sale de la flecha (no al pasar sobre el ícono de adentro)
+  document.addEventListener("pointerleave",function(e){ if(e.target.classList && e.target.classList.contains("hp-btn")) parar(); },true);
+  // Teclado (Enter / espacio sobre la flecha)
+  document.addEventListener("click",function(e){ var b=e.target.closest(".hp-btn"); if(b && e.detail===0) paso(b); });
+})();
 function hpPintar(){
   var H=(hp.h%12)+(hp.pm?12:0);
   document.getElementById("tHora").value=String(H).padStart(2,"0")+":"+String(hp.m).padStart(2,"0");
