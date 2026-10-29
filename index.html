@@ -545,6 +545,40 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   .tareas-toolbar>.btn{width:100%;justify-content:center;min-height:44px;}
 }
 
+/* ══════ FORMULARIO DE TAREA v2 ══════ */
+.modal.modal-form{display:flex;flex-direction:column;overflow:hidden;padding:0;max-height:92vh;max-height:92dvh;}
+.form-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--azul-suave);flex-shrink:0;}
+.form-head h3{flex:1;margin:0;font-size:1.05rem;text-align:left;}
+.form-head-icon{width:38px;height:38px;border-radius:11px;background:var(--azul-fondo);color:var(--azul);display:grid;place-items:center;font-size:1.35rem;flex-shrink:0;}
+.form-cerrar{width:38px;height:38px;border:none;border-radius:11px;background:var(--gris);color:#666;cursor:pointer;font-size:1.1rem;display:grid;place-items:center;flex-shrink:0;}
+.form-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 18px 6px;}
+.modal-form>.modal-btns{flex-shrink:0;margin:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--azul-suave);background:white;}
+.modal-form>.modal-btns .btn{flex:1;justify-content:center;min-height:48px;}
+.atajos{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.atajos::-webkit-scrollbar{display:none;}
+.atajo{flex-shrink:0;border:1.5px solid var(--azul-suave);background:white;color:var(--azul2);padding:8px 13px;border-radius:999px;font-family:var(--font-body);font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:background-color .2s,color .2s,border-color .2s;}
+.atajo.activo{background:var(--azul);border-color:var(--azul);color:#fff;}
+.hora-picker{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--gris);border:1.5px solid var(--azul-suave);border-radius:14px;padding:8px;}
+.hp-col{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.hp-btn{width:54px;height:36px;border:none;border-radius:10px;background:white;color:var(--azul);font-size:1.1rem;cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.08);touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .1s,background-color .15s;}
+.hp-btn:active{transform:scale(.9);background:var(--azul-fondo);}
+.hp-val{font-family:var(--font-display);font-size:2rem;font-weight:800;color:var(--azul2);min-width:58px;text-align:center;line-height:1.25;font-variant-numeric:tabular-nums;}
+.hp-sep{font-family:var(--font-display);font-size:2rem;font-weight:800;color:var(--azul2);}
+.hp-ampm{display:flex;flex-direction:column;gap:6px;margin-left:8px;}
+.hp-ap{border:1.5px solid var(--azul-suave);background:white;color:#666;border-radius:10px;padding:10px 12px;font-weight:800;font-size:.82rem;cursor:pointer;font-family:var(--font-body);touch-action:manipulation;}
+.hp-ap.activo{background:var(--azul);border-color:var(--azul);color:#fff;}
+.rec-resumen{display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--azul2);background:var(--azul-fondo);border-radius:10px;padding:10px 12px;margin:0 0 12px;}
+.rec-resumen:empty{display:none;}
+.rec-resumen i{font-size:1.1rem;flex-shrink:0;}
+.rec-resumen.malo{background:#FFEBEE;color:#C62828;}
+@media (max-width:600px){
+  #modalTarea{align-items:flex-end;}
+  #modalTarea .modal.modal-form{width:100%;max-width:100%;border-radius:22px 22px 0 0;max-height:94vh;max-height:94dvh;}
+}
+@media (max-width:360px){
+  .hp-btn{width:46px;} .hp-val{min-width:48px;font-size:1.8rem;} .hp-ap{padding:9px 9px;}
+}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -621,30 +655,68 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   </div>
 </div>
 
-<!-- NUEVA TAREA -->
+<!-- NUEVA TAREA (en celular sale desde abajo; el botón Guardar siempre queda visible) -->
 <div class="modal-overlay" id="modalTarea" onclick="if(event.target===this)cerrarNuevaTarea()">
-  <div class="modal modal-form">
-    <div class="modal-icon" style="text-align:center"><i class="ph-duotone ph-check-square-offset"></i></div>
-    <h3 style="text-align:center;margin-bottom:16px">Nueva tarea</h3>
-    <div class="form-row"><label for="tColegio">Colegio</label><select id="tColegio"></select></div>
-    <div class="form-row"><label for="tTexto">¿Qué tienes que hacer?</label><textarea id="tTexto" maxlength="1000" placeholder="Ej.: Llamar al rector para confirmar la capacitación"></textarea></div>
-    <label class="switch-row" for="tRecordar">
-      <span class="sw-txt"><i class="ph-duotone ph-alarm"></i><span>Recordarme<small>Elige el día y la hora del aviso</small></span></span>
-      <span class="switch"><input type="checkbox" id="tRecordar" onchange="toggleRecordar()"><span class="slider"></span></span>
-    </label>
-    <div class="recordar-campos" id="tRecordarCampos">
-      <div class="form-2col">
-        <div class="form-row"><label for="tFecha">Fecha</label><input type="date" id="tFecha"></div>
-        <div class="form-row"><label for="tHora">Hora</label><input type="time" id="tHora"></div>
-      </div>
-      <label class="switch-row" for="tCalendario">
-        <span class="sw-txt"><i class="ph-duotone ph-calendar-plus"></i><span>Avisar también con Google Calendar<small>Te llega al celular aunque la app esté cerrada</small></span></span>
-        <span class="switch"><input type="checkbox" id="tCalendario" checked><span class="slider"></span></span>
+  <div class="modal modal-form" role="dialog" aria-labelledby="tTitulo">
+    <div class="form-head">
+      <span class="form-head-icon"><i class="ph-duotone ph-check-square-offset"></i></span>
+      <h3 id="tTitulo">Nueva tarea</h3>
+      <button type="button" class="form-cerrar" onclick="cerrarNuevaTarea()" aria-label="Cerrar"><i class="ph-bold ph-x"></i></button>
+    </div>
+    <div class="form-body">
+      <div class="form-row"><label for="tColegio">Colegio</label><select id="tColegio"></select></div>
+      <div class="form-row"><label for="tTexto">¿Qué tienes que hacer?</label><textarea id="tTexto" maxlength="1000" placeholder="Ej.: Llamar al rector para confirmar la capacitación"></textarea></div>
+      <label class="switch-row" for="tRecordar">
+        <span class="sw-txt"><i class="ph-duotone ph-alarm"></i><span>Recordarme<small>Elige el día y la hora del aviso</small></span></span>
+        <span class="switch"><input type="checkbox" id="tRecordar" onchange="toggleRecordar()"><span class="slider"></span></span>
       </label>
+      <div class="recordar-campos" id="tRecordarCampos">
+        <div class="atajos" id="tAtajos"></div>
+        <div class="form-row"><label for="tFecha">Día</label><input type="date" id="tFecha" onchange="actualizarResumen()"></div>
+        <div class="form-row">
+          <label>Hora</label>
+          <div class="hora-picker">
+            <div class="hp-col">
+              <button type="button" class="hp-btn" onclick="hpCambiar('h',1)" aria-label="Subir hora"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpH">09</div>
+              <button type="button" class="hp-btn" onclick="hpCambiar('h',-1)" aria-label="Bajar hora"><i class="ph-bold ph-caret-down"></i></button>
+            </div>
+            <div class="hp-sep">:</div>
+            <div class="hp-col">
+              <button type="button" class="hp-btn" onclick="hpCambiar('m',1)" aria-label="Subir minutos"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpM">00</div>
+              <button type="button" class="hp-btn" onclick="hpCambiar('m',-1)" aria-label="Bajar minutos"><i class="ph-bold ph-caret-down"></i></button>
+            </div>
+            <div class="hp-ampm">
+              <button type="button" class="hp-ap" id="hpAm" onclick="hpAmPm(false)">a. m.</button>
+              <button type="button" class="hp-ap" id="hpPm" onclick="hpAmPm(true)">p. m.</button>
+            </div>
+          </div>
+          <input type="hidden" id="tHora">
+        </div>
+        <div class="form-row">
+          <label for="tAviso">Avisarme</label>
+          <select id="tAviso" onchange="actualizarResumen()">
+            <option value="0">Solo a la hora exacta</option>
+            <option value="5">5 minutos antes</option>
+            <option value="10">10 minutos antes</option>
+            <option value="15">15 minutos antes</option>
+            <option value="30">30 minutos antes</option>
+            <option value="60">1 hora antes</option>
+            <option value="120">2 horas antes</option>
+            <option value="1440">1 día antes</option>
+          </select>
+        </div>
+        <div class="rec-resumen" id="tResumen"></div>
+        <label class="switch-row" for="tCalendario">
+          <span class="sw-txt"><i class="ph-duotone ph-calendar-plus"></i><span>Avisar también con Google Calendar<small>Te llega al celular aunque la app esté cerrada</small></span></span>
+          <span class="switch"><input type="checkbox" id="tCalendario" checked><span class="slider"></span></span>
+        </label>
+      </div>
     </div>
     <div class="modal-btns">
-      <button class="btn btn-limpiar" onclick="cerrarNuevaTarea()">Cancelar</button>
-      <button class="btn btn-guardar bubbly" id="btnGuardarTarea" onclick="guardarTarea()"><i class="ph-bold ph-check-circle"></i> Guardar tarea</button>
+      <button type="button" class="btn btn-limpiar" onclick="cerrarNuevaTarea()">Cancelar</button>
+      <button type="button" class="btn btn-guardar bubbly" id="btnGuardarTarea" onclick="guardarTarea()"><i class="ph-bold ph-check-circle"></i> Guardar tarea</button>
     </div>
   </div>
 </div>
@@ -653,12 +725,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div class="modal-overlay" id="modalRecordatorio">
   <div class="modal modal-recordatorio">
     <div class="modal-icon"><i class="ph-duotone ph-bell-ringing"></i></div>
-    <h3>Tarea pendiente</h3>
+    <h3 id="recTitulo">Tarea pendiente</h3>
     <div class="rec-texto" id="recTexto"></div>
     <div class="rec-meta" id="recMeta"></div>
     <div class="modal-btns col">
       <button class="btn btn-ok" onclick="recordatorioHecha()"><i class="ph-bold ph-check"></i> Ya la hice</button>
-      <button class="btn btn-guardar" onclick="recordatorioPosponer()"><i class="ph-bold ph-timer"></i> Recordarme en 10 minutos</button>
+      <button class="btn btn-guardar" id="recPosponer" onclick="recordatorioPosponer()"><i class="ph-bold ph-timer"></i> Recordarme en 10 minutos</button>
       <button class="btn btn-limpiar" onclick="recordatorioCerrar()">Entendido</button>
     </div>
     <div class="rec-cola" id="recCola"></div>
@@ -955,8 +1027,12 @@ document.addEventListener("click",function(e){
 });
 
 // Menú: entrada, tilt 3D y rebote de ícono
+var menuAnimado=false;
 function introMenu(){
   if(!canG()) return;
+  // Solo la primera vez se hace la entrada completa; al volver al menú, una entrada corta
+  if(menuAnimado){ gsap.fromTo(".menu-grid",{opacity:0,y:10},{opacity:1,y:0,duration:.22,ease:"power2.out",clearProps:"opacity,transform"}); return; }
+  menuAnimado=true;
   gsap.from(".menu-header > *",{y:-24,opacity:0,duration:.6,stagger:.1,ease:"power3.out",clearProps:"opacity,transform"});
   gsap.from(".menu-sheets-btn",{scale:.8,opacity:0,duration:.5,delay:.25,ease:"back.out(2)",clearProps:"opacity,transform"});
   gsap.from(".menu-card",{y:50,opacity:0,scale:.9,duration:.7,delay:.2,stagger:.1,ease:"back.out(1.6)",clearProps:"opacity,transform"});
@@ -1133,7 +1209,7 @@ function irA(pantalla) {
     var scr=document.querySelector(".screen.active");
     if (pantalla==="menu") { introMenu(); }
     else {
-      gsap.fromTo(scr,{opacity:0,y:18},{opacity:1,y:0,duration:.35,ease:"power2.out",clearProps:"transform,opacity"});
+      gsap.fromTo(scr.querySelector(".container")||scr,{opacity:0,y:12},{opacity:1,y:0,duration:FINE?.28:.2,ease:"power2.out",clearProps:"transform,opacity"});   // la cabecera aparece al instante; solo el contenido se desliza
       if (pantalla==="lista") {
         // OPT: antes animaba TODOS los colegios; ahora solo los que se ven en pantalla
         var items=Array.prototype.slice.call(document.querySelectorAll("#listaContainer .lista-item"),0,8);
@@ -1754,7 +1830,7 @@ function htmlTarea(t,compacto){
   var ts=venc(t), vencida=!t.hecha&&ts&&ts<=Date.now();
   var meta="";
   if(!compacto && t.colegio) meta+='<span class="tag">'+ic("buildings")+'<span>'+escHtml(t.colegio)+'</span></span>';
-  if(t.fecha) meta+='<span class="tag '+(vencida?"rojo":(t.hecha?"verde":"morado"))+'">'+ic(vencida?"warning-circle":"alarm")+'<span>'+escHtml(fmtFechaHora(t))+(vencida?" · vencida":"")+'</span></span>';
+  if(t.fecha) meta+='<span class="tag '+(vencida?"rojo":(t.hecha?"verde":"morado"))+'">'+ic(vencida?"warning-circle":"alarm")+'<span>'+escHtml(fmtFechaHora(t))+(vencida?" · vencida":(avisoMin(t)&&!t.hecha?" · aviso "+avisoCorto(avisoMin(t))+" antes":""))+'</span></span>';
   if(t.calendario && !t.hecha) meta+='<span class="tag">'+ic("calendar-check")+'<span>Calendar</span></span>';
   return '<div class="tarea-item'+(t.hecha?' hecha':'')+(vencida?' vencida':'')+'">'+
     '<button class="tarea-check" onclick="toggleTarea(\''+jsArg(t.id)+'\')" title="'+(t.hecha?'Marcar como pendiente':'Marcar como hecha')+'">'+ic("check","bold")+'</button>'+
@@ -1814,7 +1890,7 @@ async function cargarTareas(){
     // Limpia avisos guardados de tareas que ya no existen
     var av=leerMapa("crm_avisadas"), po=leerMapa("crm_pospuestas"), ids={};
     tareas.forEach(function(t){ ids[t.id]=1; });
-    Object.keys(av).forEach(function(k){ if(!ids[k]) delete av[k]; });
+    Object.keys(av).forEach(function(k){ if(!ids[k.split(":")[0]]) delete av[k]; });
     Object.keys(po).forEach(function(k){ if(!ids[k]) delete po[k]; });
     guardarMapa("crm_avisadas",av); guardarMapa("crm_pospuestas",po);
     refrescarVistasTareas();
@@ -1831,17 +1907,24 @@ function abrirNuevaTarea(idx){
   document.getElementById("tTexto").value="";
   document.getElementById("tRecordar").checked=false;
   var d=new Date(Date.now()+60*60000); d.setMinutes(0,0,0);
-  document.getElementById("tFecha").value=fechaISO(d);
   document.getElementById("tFecha").min=fechaISO(new Date());
-  document.getElementById("tHora").value=String(d.getHours()).padStart(2,"0")+":00";
+  var avG=null; try{ avG=localStorage.getItem("crm_aviso"); }catch(e){}
+  document.getElementById("tAviso").value=(avG!==null&&document.querySelector('#tAviso option[value="'+avG+'"]'))?avG:"10";
+  fijarFechaHora(d);
+  renderAtajos();
   document.getElementById("tCalendario").checked=true;
   toggleRecordar();
   document.getElementById("modalTarea").classList.add("active");
-  if(canG()) gsap.fromTo("#modalTarea .modal",{y:30,opacity:0,scale:.96},{y:0,opacity:1,scale:1,duration:.4,ease:"back.out(1.6)",clearProps:"transform,opacity"});
+  if(canG()) gsap.fromTo("#modalTarea .modal",{y:(innerWidth<=600?160:30),opacity:0,scale:(innerWidth<=600?1:.96)},{y:0,opacity:1,scale:1,duration:.4,ease:"back.out(1.6)",clearProps:"transform,opacity"});
   if(FINE) setTimeout(function(){ document.getElementById("tTexto").focus(); },250);
+  try{ history.pushState({p:pantallaActual(),modal:true},""); }catch(e){}   // "atrás" cierra el formulario
 }
-function toggleRecordar(){ document.getElementById("tRecordarCampos").classList.toggle("show",document.getElementById("tRecordar").checked); }
-function cerrarNuevaTarea(){ document.getElementById("modalTarea").classList.remove("active"); }
+function toggleRecordar(){ document.getElementById("tRecordarCampos").classList.toggle("show",document.getElementById("tRecordar").checked); actualizarResumen(); }
+function cerrarNuevaTarea(){
+  var m=document.getElementById("modalTarea"), abierto=m.classList.contains("active");
+  m.classList.remove("active");
+  if(abierto && history.state && history.state.modal){ try{ history.back(); }catch(e){} }
+}
 async function guardarTarea(){
   desbloquearAudio();
   var txt=document.getElementById("tTexto").value.trim();
@@ -1854,7 +1937,9 @@ async function guardarTarea(){
   // El permiso de notificaciones se pide aquí porque el navegador exige que sea al tocar un botón
   if(rec && ("Notification" in window) && Notification.permission==="default"){ try{ Notification.requestPermission().then(actualizarBannerNotif); }catch(e){} }
   var t={anio:ANIO||"",colegioId:r?(r[C.id]||""):"",colegio:r?r[C.nombre]:"",tarea:txt,fecha:fecha,hora:hora,
-         calendario:rec&&document.getElementById("tCalendario").checked};
+         calendario:rec&&document.getElementById("tCalendario").checked,
+         aviso:rec?(parseInt(document.getElementById("tAviso").value,10)||0):0};
+  try{ if(rec) localStorage.setItem("crm_aviso",document.getElementById("tAviso").value); }catch(e){}
   var btn=document.getElementById("btnGuardarTarea"); btn.disabled=true;
   mostrarToast("Guardando tarea...");
   try {
@@ -1917,7 +2002,7 @@ function resolverConfirmar(v){
 function leerMapa(k){ try{ return JSON.parse(localStorage.getItem(k)||"{}")||{}; }catch(e){ return {}; } }
 function guardarMapa(k,m){ try{ localStorage.setItem(k,JSON.stringify(m)); }catch(e){} }
 function marcarAvisada(id){
-  var av=leerMapa("crm_avisadas"); av[id]=Date.now(); guardarMapa("crm_avisadas",av);
+  var av=leerMapa("crm_avisadas"); av[id]=Date.now(); av[id+":pre"]=Date.now(); guardarMapa("crm_avisadas",av);
   var po=leerMapa("crm_pospuestas"); delete po[id]; guardarMapa("crm_pospuestas",po);
 }
 var recCola=[], recActual=null, recTimer=null;
@@ -1926,22 +2011,31 @@ function iniciarRecordatorios(){
   recTimer=setInterval(revisarRecordatorios,20000);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) revisarRecordatorios(); });
 }
+function avisoMin(t){ var a=parseInt(t&&t.aviso,10); return isNaN(a)||a<0?0:a; }
+function avisoTexto(a){ return a<60?a+" minutos":(a===60?"1 hora":(a<1440?(a/60)+" horas":(a===1440?"1 día":Math.round(a/1440)+" días"))); }
+function avisoCorto(a){ return a<60?a+" min":(a<1440?(a/60)+" h":(a/1440)+" d"); }
+// Cada tarea con recordatorio puede avisar dos veces: antes (lo que elegiste) y a la hora exacta
 function revisarRecordatorios(){
   if(!TOKEN) return;
   var ov=document.getElementById("pinOverlay");
   if(ov && ov.style.display!=="none") return;          // aún en el PIN o eligiendo año
   var av=leerMapa("crm_avisadas"), po=leerMapa("crm_pospuestas"), now=Date.now();
+  function enCola(k){ return (recActual&&recActual.k===k)||recCola.some(function(x){ return x.k===k; }); }
   tareas.forEach(function(t){
     if(t.hecha) return;
-    var ts=venc(t); if(!ts||ts>now) return;
-    if(av[t.id]) return;
-    if(po[t.id] && po[t.id]>now) return;
-    if(recActual && recActual.id===t.id) return;
-    if(recCola.some(function(x){ return x.id===t.id; })) return;
-    recCola.push(t);
+    var ts=venc(t); if(!ts) return;
+    var a=avisoMin(t);
+    if(a>0 && now<ts && now>=ts-a*60000){
+      var kp=t.id+":pre";
+      if(!av[kp] && !enCola(kp)) recCola.push({k:kp,t:t,pre:true});
+    }
+    if(now>=ts){
+      if(av[t.id]) return;
+      if(po[t.id] && po[t.id]>now) return;
+      if(!enCola(t.id)) recCola.push({k:t.id,t:t,pre:false});
+    }
   });
   if(!recActual && recCola.length) mostrarSiguienteRecordatorio();
-  // Actualiza "vencida" en pantalla cuando llega la hora
   var c=contarTareas();
   if(c.v!==ultimoVencidas){ ultimoVencidas=c.v; refrescarVistasTareas(); } else actualizarBadgeTareas();
 }
@@ -1949,28 +2043,34 @@ function mostrarSiguienteRecordatorio(){
   recActual=recCola.shift()||null;
   var m=document.getElementById("modalRecordatorio");
   if(!recActual){ m.classList.remove("active"); return; }
-  var t=recActual;
+  var t=recActual.t, pre=recActual.pre;
+  var titulo=pre?("En "+avisoTexto(Math.max(1,Math.round((venc(t)-Date.now())/60000)))):"Tarea pendiente";
+  document.getElementById("recTitulo").textContent=titulo;
+  document.getElementById("recPosponer").style.display=pre?"none":"";
   document.getElementById("recTexto").textContent=t.tarea;
   document.getElementById("recMeta").innerHTML=
     (t.colegio?'<span class="tag">'+ic("buildings")+'<span>'+escHtml(t.colegio)+'</span></span>':'')+
-    '<span class="tag rojo">'+ic("alarm")+'<span>'+escHtml(fmtFechaHora(t))+'</span></span>';
+    '<span class="tag '+(pre?'morado':'rojo')+'">'+ic("alarm")+'<span>'+escHtml(fmtFechaHora(t))+'</span></span>';
   document.getElementById("recCola").textContent=recCola.length?("Tienes "+recCola.length+" recordatorio"+(recCola.length>1?"s":"")+" más"):"";
   m.classList.add("active");
   if(canG()) gsap.fromTo("#modalRecordatorio .modal",{scale:.7,opacity:0},{scale:1,opacity:1,duration:.55,ease:"elastic.out(1,.6)",clearProps:"transform,opacity"});
   sonarAlarma();
-  notificarSistema(t);
+  notificarSistema(t,"⏰ "+titulo);
 }
 function recordatorioHecha(){
-  var t=recActual;
-  if(t){ marcarAvisada(t.id); if(!t.hecha) toggleTarea(t.id); }
+  var it=recActual;
+  if(it){ marcarAvisada(it.t.id); if(!it.t.hecha) toggleTarea(it.t.id); }
   siguienteRecordatorio();
 }
 function recordatorioPosponer(){
-  var t=recActual;
-  if(t){ var po=leerMapa("crm_pospuestas"); po[t.id]=Date.now()+10*60000; guardarMapa("crm_pospuestas",po); mostrarToast("Te lo recuerdo en 10 minutos"); }
+  var it=recActual;
+  if(it && !it.pre){ var po=leerMapa("crm_pospuestas"); po[it.k]=Date.now()+10*60000; guardarMapa("crm_pospuestas",po); mostrarToast("Te lo recuerdo en 10 minutos"); }
   siguienteRecordatorio();
 }
-function recordatorioCerrar(){ if(recActual) marcarAvisada(recActual.id); siguienteRecordatorio(); }
+function recordatorioCerrar(){
+  if(recActual){ var av=leerMapa("crm_avisadas"); av[recActual.k]=Date.now(); guardarMapa("crm_avisadas",av); }
+  siguienteRecordatorio();
+}
 function siguienteRecordatorio(){
   document.getElementById("modalRecordatorio").classList.remove("active");
   recActual=null;
@@ -2007,9 +2107,9 @@ function sonarAlarma(){
 }
 
 // Notificación del sistema (cuando la app está abierta pero en segundo plano)
-function notificarSistema(t){
+function notificarSistema(t,titulo){
   if(!("Notification" in window) || Notification.permission!=="granted" || !document.hidden) return;
-  var titulo="⏰ Tarea pendiente";
+  titulo=titulo||"⏰ Tarea pendiente";
   var op={body:t.tarea+(t.colegio?"\n"+t.colegio:""),icon:"img/icon-192.png",badge:"img/icon-192.png",
           tag:"tarea-"+t.id,requireInteraction:true,vibrate:[300,120,300],data:{id:t.id}};
   if(navigator.serviceWorker && navigator.serviceWorker.controller){
@@ -2042,6 +2142,94 @@ async function activarNotificaciones(){
   if(p==="granted"){ mostrarToast("Notificaciones activadas","ok"); sonarAlarma(); }
   else mostrarToast("No se activaron las notificaciones","error");
 }
+
+// ══════ SELECTOR DE HORA PROPIO (no depende del reloj del sistema, que se desbordaba en celular) ══════
+var hp={h:9,m:0,pm:false};
+function fijarFechaHora(d){
+  document.getElementById("tFecha").value=fechaISO(d);
+  var H=d.getHours(), m=Math.round(d.getMinutes()/5)*5;
+  if(m===60) m=55;
+  hp.pm=H>=12; hp.h=(H%12)||12; hp.m=m;
+  hpPintar();
+}
+function hpCambiar(campo,delta){
+  if(campo==="h") hp.h=((hp.h-1+delta+12)%12)+1;
+  else hp.m=(hp.m+delta*5+60)%60;
+  hpPintar();
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+function hpAmPm(pm){ hp.pm=pm; hpPintar(); }
+function hpPintar(){
+  var H=(hp.h%12)+(hp.pm?12:0);
+  document.getElementById("tHora").value=String(H).padStart(2,"0")+":"+String(hp.m).padStart(2,"0");
+  document.getElementById("hpH").textContent=String(hp.h).padStart(2,"0");
+  document.getElementById("hpM").textContent=String(hp.m).padStart(2,"0");
+  document.getElementById("hpAm").classList.toggle("activo",!hp.pm);
+  document.getElementById("hpPm").classList.toggle("activo",hp.pm);
+  actualizarResumen();
+}
+function fmtHoraCorta(ms){
+  var d=new Date(ms), mismoDia=fechaISO(new Date())===fechaISO(d);
+  return (mismoDia?"":d.toLocaleDateString("es-CO",{day:"numeric",month:"short"})+" ")+d.toLocaleTimeString("es-CO",{hour:"numeric",minute:"2-digit"});
+}
+// Resumen en vivo: "Hoy · 3:00 p. m. · aviso previo 2:50 p. m."
+function actualizarResumen(){
+  var el=document.getElementById("tResumen"); if(!el) return;
+  var f=document.getElementById("tFecha").value, h=document.getElementById("tHora").value;
+  var ts=(f&&h)?new Date(f+"T"+h+":00").getTime():NaN;
+  if(isNaN(ts)){ el.innerHTML=""; return; }
+  var a=parseInt(document.getElementById("tAviso").value,10)||0, pasado=ts<Date.now();
+  el.className="rec-resumen"+(pasado?" malo":"");
+  el.innerHTML=pasado?ic("warning-circle")+"<span>Esa fecha y hora ya pasaron</span>"
+    :ic("bell-ringing")+"<span>"+escHtml(fmtFechaHora({fecha:f,hora:h}))+(a?" · aviso previo "+escHtml(fmtHoraCorta(ts-a*60000)):"")+"</span>";
+  document.querySelectorAll("#tAtajos .atajo").forEach(function(b){ b.classList.toggle("activo",b.getAttribute("data-ts")===String(ts)); });
+}
+// Atajos rápidos: un toque y queda fecha y hora
+function renderAtajos(){
+  var cont=document.getElementById("tAtajos"), now=new Date(), ops=[];
+  function redondo(min){ var d=new Date(now.getTime()+min*60000); d.setSeconds(0,0); d.setMinutes(Math.ceil(d.getMinutes()/5)*5); return d; }
+  ops.push(["En 30 min",redondo(30)]);
+  ops.push(["En 1 hora",redondo(60)]);
+  var h5=new Date(now); h5.setHours(17,0,0,0); if(h5.getTime()-now.getTime()>30*60000) ops.push(["Hoy 5:00 p. m.",h5]);
+  var m8=new Date(now); m8.setDate(m8.getDate()+1); m8.setHours(8,0,0,0); ops.push(["Mañana 8:00 a. m.",m8]);
+  var m2=new Date(m8); m2.setHours(14,0,0,0); ops.push(["Mañana 2:00 p. m.",m2]);
+  cont.innerHTML=ops.map(function(o){ var ms=o[1].getTime(); return '<button type="button" class="atajo" data-ts="'+ms+'" onclick="fijarFechaHora(new Date('+ms+'))">'+o[0]+'</button>'; }).join("");
+  actualizarResumen();
+}
+
+// ══════ NAVEGACIÓN CON EL BOTÓN "ATRÁS" (celular, tablet y navegador) ══════
+// Antes, "atrás" en Android cerraba la app. Ahora: cierra la ventana abierta o vuelve al menú.
+if(history.state && history.state.p){ try{ history.replaceState(null,""); }catch(e){} }
+function cerrarModalesAbiertos(){
+  var hubo=false;
+  if(document.getElementById("modalConfirmar").classList.contains("active")){ resolverConfirmar(false); hubo=true; }
+  ["modalTarea","modalOverlay","modalInstalar"].forEach(function(id){
+    var m=document.getElementById(id); if(m && m.classList.contains("active")){ m.classList.remove("active"); hubo=true; }
+  });
+  return hubo;
+}
+function pantallaActual(){
+  var a=document.querySelector(".screen.active"); if(!a) return "menu";
+  return {screenMenu:"menu",screenCrm:"crm",screenLista:"lista",screenCenso:"censo",screenTareas:"tareas"}[a.id]||"menu";
+}
+var _irAPantalla=irA;
+irA=function(p,desdeHistorial){
+  if(!desdeHistorial){
+    var enSub=!!(history.state && history.state.p && history.state.p!=="menu");
+    try{
+      if(p==="menu"){ if(enSub){ history.back(); return; } }
+      else if(enSub) history.replaceState({p:p},"");
+      else history.pushState({p:p},"");
+    }catch(e){}
+  }
+  _irAPantalla(p);
+};
+window.addEventListener("popstate",function(e){
+  cerrarModalesAbiertos();
+  var p=(e.state && e.state.p)||"menu";
+  if(!document.getElementById("screen"+(p==="crm"?"Crm":p.charAt(0).toUpperCase()+p.slice(1)))) p="menu";
+  if(p!==pantallaActual()) _irAPantalla(p);   // si solo se cerró una ventana, no se recarga la pantalla
+});
 </script>
 </body>
 </html>
