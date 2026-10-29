@@ -7,7 +7,7 @@
  * Para forzar que todos los celulares descarguen una versión nueva de los archivos de apoyo
  * (imágenes, íconos), cambia el número de VERSION.
  */
-const VERSION = "v2";
+const VERSION = "v4";
 const CACHE = "crm-colegios-" + VERSION;
 
 const PRECARGA = [
@@ -17,7 +17,8 @@ const PRECARGA = [
   "img/fondo-movil.webp",
   "img/icon-192.png",
   "img/icon-512.png",
-  "img/apple-touch-icon.png"
+  "img/apple-touch-icon.png",
+  "img/logo.webp"
 ];
 
 // Servicios cuyas respuestas jamás se guardan
@@ -75,4 +76,15 @@ self.addEventListener("fetch", function (e) {
       })
     );
   }
+});
+
+// Al tocar una notificación de tarea, se abre (o se trae al frente) la app
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (lista) {
+      for (var i = 0; i < lista.length; i++) { if ("focus" in lista[i]) return lista[i].focus(); }
+      if (self.clients.openWindow) return self.clients.openWindow("./");
+    })
+  );
 });

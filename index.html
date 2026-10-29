@@ -85,6 +85,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 @keyframes flota{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(60px,40px,0) scale(1.2);}}
 .pin-box{position:relative;z-index:1;background:rgba(255,255,255,0.96);border-radius:24px;padding:40px 36px;text-align:center;width:320px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,0.3);}
 .pin-logo{font-size:3.2rem;margin-bottom:10px;color:var(--azul);}
+.pin-logo-img{display:block;width:92px;height:92px;margin:0 auto 14px;border-radius:24px;box-shadow:0 8px 24px rgba(20,5,60,.35);}
 .pin-title{font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--azul2);margin-bottom:4px;}
 .pin-sub{font-size:0.82rem;color:#888;margin-bottom:28px;}
 .pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:28px;}
@@ -133,7 +134,7 @@ i.ph-duotone,i.ph-bold{display:inline-block;vertical-align:-0.15em;line-height:1
 .menu-header{padding:40px 24px 20px;text-align:center;color:white;}
 .menu-header h1{font-family:var(--font-display);font-size:1.8rem;font-weight:800;letter-spacing:1px;}
 .menu-header p{opacity:0.8;margin-top:6px;}
-.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;padding:20px 24px 40px;max-width:800px;margin:0 auto;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px;padding:20px 24px 40px;max-width:960px;margin:0 auto;}
 .menu-card{position:relative;overflow:hidden;background:white;border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
 /* OPT: la barra inferior animaba "right" (layout). Ahora usa scaleX. */
 .menu-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--azul-claro),var(--azul));transform:scaleX(0);transform-origin:left;transition:transform .35s ease;}
@@ -387,7 +388,7 @@ body.editando .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px));}
   .pin-overlay{overflow-y:auto;align-items:flex-start;padding:12px 0;}
   .pin-overlay::before,.pin-overlay::after{display:none;}
   .pin-box{margin:auto;padding:20px 24px;}
-  .pin-logo{font-size:2.2rem;margin-bottom:4px;}
+  .pin-logo-img{width:60px;height:60px;margin-bottom:8px;border-radius:16px;}
   .pin-sub,.pin-dots{margin-bottom:14px;}
   .pin-key{padding:11px;}
 }
@@ -409,6 +410,141 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 #listaContainer>.ficha-empty,#censoContent>.ficha-empty{color:rgba(255,255,255,.9);}
 #listaContainer>.ficha-empty span,#censoContent>.ficha-empty span{color:rgba(255,255,255,.6);}
 
+/* ══════ PIN EN CELULAR ACOSTADO: logo a la izquierda, teclado a la derecha ══════ */
+@media (max-height:480px) and (orientation:landscape){
+  .pin-overlay{align-items:center;padding:0;}
+  .pin-box{display:grid;grid-template-columns:1fr 1.1fr;grid-template-areas:"logo pad" "title pad" "sub pad" "dots pad" "err pad";column-gap:22px;align-content:center;width:min(620px,94vw);padding:14px 22px;margin:0;}
+  .pin-logo-img{grid-area:logo;margin:0 auto 6px;}
+  .pin-title{grid-area:title;font-size:1.05rem;margin-bottom:2px;}
+  .pin-sub{grid-area:sub;margin-bottom:8px;}
+  .pin-dots{grid-area:dots;margin-bottom:6px;}
+  .pin-error{grid-area:err;margin-top:2px;min-height:18px;}
+  .pin-numpad{grid-area:pad;gap:6px;align-self:center;}
+  .pin-key{padding:9px;font-size:1.05rem;}
+}
+
+/* ══════ SELECTOR DE AÑO ══════ */
+.anio-box{position:relative;z-index:1;display:none;background:rgba(255,255,255,0.97);border-radius:24px;padding:30px 26px 24px;text-align:center;width:380px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:auto;}
+.pin-overlay.paso-anio .pin-box{display:none;}
+.pin-overlay.paso-anio .anio-box{display:block;}
+.anio-titulo{font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--azul2);margin-bottom:4px;}
+.anio-sub{font-size:.82rem;color:#888;margin-bottom:20px;}
+.anio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:18px;}
+.anio-btn{position:relative;overflow:hidden;border:none;cursor:pointer;border-radius:18px;padding:20px 10px 16px;background:linear-gradient(135deg,#2a1460 0%,#6a2fc0 55%,#d0479b 100%);color:#fff;font-family:var(--font-display);box-shadow:0 10px 24px rgba(80,30,150,.35);transition:transform .2s,box-shadow .2s;}
+.anio-btn .anio-num{display:block;font-size:2rem;font-weight:800;letter-spacing:1px;}
+.anio-btn .anio-tag{display:block;font-family:var(--font-body);font-size:.66rem;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.anio-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.3) 50%,transparent 70%);transform:translateX(-100%);transition:transform .6s;}
+.anio-btn:hover::after{transform:translateX(100%);}
+.anio-btn:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(80,30,150,.45);}
+.anio-btn:active{transform:scale(.96);}
+.anio-btn.actual{outline:3px solid #42A5F5;outline-offset:3px;}
+.anio-vacio{grid-column:1/-1;font-size:.85rem;color:#795548;background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:12px;}
+.anio-nota{font-size:.74rem;color:#999;line-height:1.45;}
+.anio-cerrar{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:10px;border:none;background:var(--gris);color:#666;cursor:pointer;font-size:1.1rem;display:none;align-items:center;justify-content:center;}
+.anio-box.puede-cerrar .anio-cerrar{display:flex;}
+.anio-chip{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.5);color:#fff;padding:8px 16px;border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.92rem;cursor:pointer;transition:background .2s;}
+.anio-chip:hover{background:rgba(255,255,255,.32);}
+@media (max-height:480px) and (orientation:landscape){
+  .anio-box{padding:16px 22px;width:min(560px,94vw);}
+  .anio-box .pin-logo-img{display:none;}
+  .anio-sub{margin-bottom:12px;}
+  .anio-btn{padding:12px 8px 10px;}
+  .anio-btn .anio-num{font-size:1.5rem;}
+}
+
+/* ══════ MENÚ: 4 tarjetas ══════ */
+.menu-card-badge{position:absolute;top:12px;right:12px;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:#e53935;color:#fff;font-family:var(--font-display);font-weight:800;font-size:.8rem;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(229,57,53,.4);z-index:2;}
+.menu-card-badge.show{display:flex;}
+.menu-card-badge.suave{background:var(--azul);box-shadow:0 4px 12px rgba(21,101,192,.35);}
+@media (max-width:600px){
+  .menu-grid{grid-template-columns:1fr 1fr;gap:12px;padding:10px 14px 30px;}
+  .menu-card{padding:20px 12px;border-radius:18px;}
+  .menu-card-icon{width:56px;height:56px;font-size:1.8rem;margin-bottom:10px;border-radius:16px;}
+  .menu-card-title{font-size:.9rem;}
+  .menu-card-desc{font-size:.72rem;}
+}
+
+/* ══════ TAREAS ══════ */
+.tareas-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.chips{display:flex;gap:4px;background:white;padding:5px;border-radius:14px;box-shadow:var(--sombra);}
+.chip{border:none;background:transparent;padding:9px 14px;border-radius:10px;font-family:var(--font-body);font-weight:700;font-size:.82rem;color:#666;cursor:pointer;transition:background .2s,color .2s;}
+.chip.activo{background:var(--azul);color:#fff;}
+.chip .n{opacity:.75;margin-left:5px;font-weight:600;}
+.notif-banner{display:none;align-items:center;gap:10px;background:#FFF8E1;border:1px solid #FFE082;color:#6D4C41;border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:.84rem;font-weight:600;}
+.notif-banner.show{display:flex;}
+.notif-banner>i{font-size:1.3rem;flex-shrink:0;}
+.notif-banner>span{flex:1;}
+.notif-banner .btn{padding:8px 14px;flex-shrink:0;}
+.tarea-item{display:flex;align-items:flex-start;gap:12px;background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--sombra);border-left:5px solid var(--azul-claro);}
+.tarea-item.vencida{border-left-color:#e53935;}
+.tarea-item.hecha{border-left-color:#66BB6A;}
+.tarea-item.hecha .tarea-texto{text-decoration:line-through;color:#999;}
+.tarea-check{width:32px;height:32px;flex-shrink:0;border-radius:50%;border:2.5px solid var(--azul-claro);background:white;color:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s,border-color .2s,color .2s,transform .15s;}
+.tarea-check:hover{border-color:#43A047;color:#A5D6A7;}
+.tarea-check:active{transform:scale(.88);}
+.tarea-item.hecha .tarea-check{background:#43A047;border-color:#43A047;color:#fff;}
+.tarea-info{flex:1;min-width:0;padding-top:4px;}
+.tarea-texto{font-weight:600;font-size:.92rem;color:var(--texto);word-break:break-word;white-space:pre-wrap;}
+.tarea-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--azul-fondo);color:var(--azul2);max-width:100%;}
+.tag>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tag.rojo{background:#FFEBEE;color:#C62828;}
+.tag.verde{background:#E8F5E9;color:#2E7D32;}
+.tag.morado{background:#F3E5F5;color:#6A1B9A;}
+.tarea-borrar{width:36px;height:36px;flex-shrink:0;border:none;border-radius:10px;background:#FFF3E0;color:#E65100;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.05rem;transition:background .2s,color .2s;}
+.tarea-borrar:hover{background:#E65100;color:#fff;}
+#tareasLista>.ficha-empty{color:rgba(255,255,255,.92);}
+#tareasLista>.ficha-empty span{color:rgba(255,255,255,.6);}
+.ficha-tareas .tarea-item{box-shadow:none;border:1px solid var(--azul-suave);border-left-width:5px;background:var(--gris);}
+.ficha-tareas-hechas{font-size:.75rem;color:#888;margin:2px 0 10px;text-align:center;}
+.btn-mini{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:1.5px dashed var(--azul-claro);background:white;color:var(--azul);padding:11px 14px;border-radius:12px;font-family:var(--font-body);font-weight:700;font-size:.84rem;cursor:pointer;transition:background .2s;}
+.btn-mini:hover{background:var(--azul-fondo);}
+
+/* Formulario de tarea */
+.modal.modal-form{max-width:460px;text-align:left;max-height:92vh;overflow-y:auto;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:.7rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-row select,.form-row textarea,.form-row input{width:100%;padding:11px 12px;border:1.5px solid var(--azul-suave);border-radius:10px;font-family:inherit;font-size:16px;background:white;color:var(--texto);outline:none;}
+.form-row textarea{min-height:88px;resize:vertical;}
+.form-row select:focus,.form-row textarea:focus,.form-row input:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,.12);}
+.form-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.modal-overlay>.modal{min-width:0;}
+.form-row select,.form-row input{min-width:0;max-width:100%;}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--gris);border:1px solid var(--azul-suave);border-radius:12px;margin-bottom:12px;cursor:pointer;}
+.switch-row .sw-txt{font-weight:700;font-size:.88rem;color:var(--azul2);display:flex;align-items:center;gap:10px;}
+.switch-row .sw-txt>i{font-size:1.35rem;color:var(--azul);flex-shrink:0;}
+.switch-row small{display:block;font-weight:500;color:#888;font-size:.74rem;margin-top:2px;}
+.switch{position:relative;width:48px;height:28px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.switch .slider{position:absolute;inset:0;background:#cfd8e3;border-radius:999px;transition:background .2s;}
+.switch .slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.switch input:checked+.slider{background:var(--azul);}
+.switch input:checked+.slider::before{transform:translateX(20px);}
+.recordar-campos{display:none;}
+.recordar-campos.show{display:block;}
+
+/* Recordatorio en mitad de pantalla */
+#modalConfirmar{z-index:1001;}
+#modalRecordatorio{z-index:1002;}
+.modal.modal-recordatorio{max-width:420px;border-top:6px solid #FF7043;}
+.modal-recordatorio .modal-icon{color:#FF7043;display:inline-block;animation:campana 1.2s ease-in-out infinite;transform-origin:50% 10%;}
+@keyframes campana{0%,100%{transform:rotate(0)}10%{transform:rotate(16deg)}20%{transform:rotate(-14deg)}30%{transform:rotate(10deg)}40%{transform:rotate(-6deg)}50%{transform:rotate(0)}}
+.rec-texto{font-size:1.08rem;font-weight:700;color:var(--texto);margin:4px 0 12px;white-space:pre-wrap;word-break:break-word;}
+.rec-meta{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px;}
+.rec-cola{font-size:.78rem;color:#888;margin-top:12px;}
+.modal-btns.col{flex-direction:column;}
+.modal-btns.col .btn{justify-content:center;width:100%;min-height:46px;}
+.btn-ok{background:#43A047;color:#fff;}
+.btn-ok:hover{background:#2E7D32;}
+.btn-peligro{background:#E53935;color:#fff;}
+.btn-peligro:hover{background:#C62828;}
+.btn:disabled{opacity:.6;cursor:wait;}
+@media (max-width:600px){
+  .tareas-toolbar .chips{flex:1;}
+  .tareas-toolbar .chip{flex:1;padding:9px 6px;}
+  .tareas-toolbar>.btn{width:100%;justify-content:center;min-height:44px;}
+}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -424,7 +560,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <!-- PIN -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
-    <div class="pin-logo"><i class="ph-duotone ph-lock-key"></i></div>
+    <img class="pin-logo-img" src="img/logo.webp" width="92" height="92" alt="CRM" decoding="async">
     <div class="pin-title">CRM Colegios Santillana</div>
     <div class="pin-sub">Ingresa tu PIN de 4 dígitos</div>
     <div class="pin-dots">
@@ -446,6 +582,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <button class="pin-key del" data-k="B" aria-label="Borrar un dígito"><span><i class="ph-bold ph-backspace"></i></span></button>
     </div>
     <div class="pin-error" id="pinError"></div>
+  </div>
+  <!-- SELECTOR DE AÑO (aparece después del PIN) -->
+  <div class="anio-box" id="anioBox">
+    <button class="anio-cerrar" onclick="cerrarSelectorAnio()" aria-label="Cerrar"><i class="ph-bold ph-x"></i></button>
+    <img class="pin-logo-img" src="img/logo.webp" width="92" height="92" alt="CRM" decoding="async">
+    <div class="anio-titulo">¿Qué año quieres ver?</div>
+    <div class="anio-sub">Cada año tiene su propia base de datos</div>
+    <div class="anio-grid" id="anioGrid"></div>
+    <div class="anio-nota">Para agregar un año, crea en tu hoja una pestaña con el número del año (por ejemplo <b>2027</b>). Aparecerá aquí sola.</div>
   </div>
 </div>
 
@@ -476,12 +621,70 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   </div>
 </div>
 
+<!-- NUEVA TAREA -->
+<div class="modal-overlay" id="modalTarea" onclick="if(event.target===this)cerrarNuevaTarea()">
+  <div class="modal modal-form">
+    <div class="modal-icon" style="text-align:center"><i class="ph-duotone ph-check-square-offset"></i></div>
+    <h3 style="text-align:center;margin-bottom:16px">Nueva tarea</h3>
+    <div class="form-row"><label for="tColegio">Colegio</label><select id="tColegio"></select></div>
+    <div class="form-row"><label for="tTexto">¿Qué tienes que hacer?</label><textarea id="tTexto" maxlength="1000" placeholder="Ej.: Llamar al rector para confirmar la capacitación"></textarea></div>
+    <label class="switch-row" for="tRecordar">
+      <span class="sw-txt"><i class="ph-duotone ph-alarm"></i><span>Recordarme<small>Elige el día y la hora del aviso</small></span></span>
+      <span class="switch"><input type="checkbox" id="tRecordar" onchange="toggleRecordar()"><span class="slider"></span></span>
+    </label>
+    <div class="recordar-campos" id="tRecordarCampos">
+      <div class="form-2col">
+        <div class="form-row"><label for="tFecha">Fecha</label><input type="date" id="tFecha"></div>
+        <div class="form-row"><label for="tHora">Hora</label><input type="time" id="tHora"></div>
+      </div>
+      <label class="switch-row" for="tCalendario">
+        <span class="sw-txt"><i class="ph-duotone ph-calendar-plus"></i><span>Avisar también con Google Calendar<small>Te llega al celular aunque la app esté cerrada</small></span></span>
+        <span class="switch"><input type="checkbox" id="tCalendario" checked><span class="slider"></span></span>
+      </label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-limpiar" onclick="cerrarNuevaTarea()">Cancelar</button>
+      <button class="btn btn-guardar bubbly" id="btnGuardarTarea" onclick="guardarTarea()"><i class="ph-bold ph-check-circle"></i> Guardar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORDATORIO (mitad de la pantalla, con sonido) -->
+<div class="modal-overlay" id="modalRecordatorio">
+  <div class="modal modal-recordatorio">
+    <div class="modal-icon"><i class="ph-duotone ph-bell-ringing"></i></div>
+    <h3>Tarea pendiente</h3>
+    <div class="rec-texto" id="recTexto"></div>
+    <div class="rec-meta" id="recMeta"></div>
+    <div class="modal-btns col">
+      <button class="btn btn-ok" onclick="recordatorioHecha()"><i class="ph-bold ph-check"></i> Ya la hice</button>
+      <button class="btn btn-guardar" onclick="recordatorioPosponer()"><i class="ph-bold ph-timer"></i> Recordarme en 10 minutos</button>
+      <button class="btn btn-limpiar" onclick="recordatorioCerrar()">Entendido</button>
+    </div>
+    <div class="rec-cola" id="recCola"></div>
+  </div>
+</div>
+
+<!-- CONFIRMAR BORRADO -->
+<div class="modal-overlay" id="modalConfirmar" onclick="if(event.target===this)resolverConfirmar(false)">
+  <div class="modal">
+    <div class="modal-icon" style="color:#E53935"><i class="ph-duotone ph-trash"></i></div>
+    <h3 id="confTitulo">¿Borrar tarea?</h3>
+    <p id="confTexto"></p>
+    <div class="modal-btns">
+      <button class="btn btn-limpiar" onclick="resolverConfirmar(false)">Cancelar</button>
+      <button class="btn btn-peligro" onclick="resolverConfirmar(true)"><i class="ph-bold ph-trash"></i> Borrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ MENÚ PRINCIPAL ══════════ -->
 <div id="screenMenu" class="screen active menu-screen">
   <div class="menu-header">
     <div style="font-size:3.4rem;margin-bottom:10px"><i class="ph-duotone ph-graduation-cap"></i></div>
     <h1>CRM COLEGIOS</h1>
     <p>Panel de gestión institucional</p>
+    <button class="anio-chip" id="anioChip" onclick="abrirSelectorAnio()" style="display:none"></button>
   </div>
   <div class="menu-sheets">
     <button class="menu-sheets-btn bubbly" id="btnInstalar" onclick="instalarApp()" style="display:none"><i class="ph-duotone ph-download-simple" style="font-size:1.2rem"></i> Instalar app</button>
@@ -503,6 +706,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <div class="menu-card-title">Censo Estudiantes</div>
       <div class="menu-card-desc">Matrícula por grado de cada colegio</div>
     </div>
+    <div class="menu-card" onclick="irA('tareas')">
+      <span class="menu-card-badge" id="tareasBadge"></span>
+      <div class="menu-card-icon"><i class="ph-duotone ph-check-square-offset"></i></div>
+      <div class="menu-card-title">Tareas</div>
+      <div class="menu-card-desc">Pendientes y recordatorios por colegio</div>
+    </div>
   </div>
 </div>
 
@@ -512,7 +721,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <button class="back-btn bubbly" onclick="irA('menu')"><i class="ph-bold ph-arrow-left"></i> Menú</button>
     <div class="header-text" style="margin-left:8px">
       <h1>CRM COLEGIOS</h1>
-      <p>Ficha institucional</p>
+      <p>Ficha institucional<span class="anio-txt"></span></p>
     </div>
     <div class="header-actions">
       <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
@@ -560,7 +769,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <button class="back-btn bubbly" onclick="irA('menu')"><i class="ph-bold ph-arrow-left"></i> Menú</button>
     <div class="header-text" style="margin-left:8px">
       <h1>LISTA DE COLEGIOS</h1>
-      <p>Usuarios y contraseñas</p>
+      <p>Usuarios y contraseñas<span class="anio-txt"></span></p>
     </div>
     <div class="header-actions">
       <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
@@ -585,7 +794,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <button class="back-btn bubbly" onclick="irA('menu')"><i class="ph-bold ph-arrow-left"></i> Menú</button>
     <div class="header-text" style="margin-left:8px">
       <h1>CENSO ESTUDIANTES</h1>
-      <p>Matrícula por grado</p>
+      <p>Matrícula por grado<span class="anio-txt"></span></p>
     </div>
     <div class="header-actions">
       <button class="hdr-btn" title="Google Sheets" onclick="abrirSheets()"><i class="ph-duotone ph-table"></i></button>
@@ -604,6 +813,40 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       </div>
     </div>
     <div id="censoContent"><div class="ficha-empty"><span><i class="ph-duotone ph-chart-bar"></i></span>Selecciona un colegio para ver el censo</div></div>
+  </div>
+</div>
+
+<!-- ══════════ TAREAS ══════════ -->
+<div id="screenTareas" class="screen">
+  <div class="header">
+    <button class="back-btn bubbly" onclick="irA('menu')"><i class="ph-bold ph-arrow-left"></i> Menú</button>
+    <div class="header-text" style="margin-left:8px">
+      <h1>TAREAS</h1>
+      <p>Pendientes y recordatorios</p>
+    </div>
+    <div class="header-actions">
+      <button class="hdr-btn" id="btnNotif" title="Activar notificaciones" onclick="activarNotificaciones()"><i class="ph-duotone ph-bell-ringing"></i></button>
+      <button class="hdr-btn" title="Nueva tarea" onclick="abrirNuevaTarea()"><i class="ph-bold ph-plus"></i></button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="search-card">
+      <div class="search-label"><i class="ph-duotone ph-funnel"></i> Buscar tarea o colegio</div>
+      <div class="search-wrap">
+        <input type="text" class="search-input" id="tareasSearch" placeholder="Escribe para filtrar..." oninput="renderTareasDebounced()">
+        <span class="search-icon"><i class="ph-duotone ph-magnifying-glass"></i></span>
+      </div>
+    </div>
+    <div class="tareas-toolbar">
+      <div class="chips" id="tareasChips">
+        <button class="chip activo" data-f="pendientes" onclick="filtrarTareas('pendientes')">Pendientes<span class="n" id="nPend"></span></button>
+        <button class="chip" data-f="hechas" onclick="filtrarTareas('hechas')">Hechas<span class="n" id="nHechas"></span></button>
+        <button class="chip" data-f="todas" onclick="filtrarTareas('todas')">Todas</button>
+      </div>
+      <button class="btn btn-guardar bubbly" onclick="abrirNuevaTarea()"><i class="ph-bold ph-plus"></i> Nueva tarea</button>
+    </div>
+    <div class="notif-banner" id="notifBanner"></div>
+    <div id="tareasLista"></div>
   </div>
 </div>
 
@@ -639,6 +882,7 @@ const GRADOS = ["Pre kind","Kinder","Transición","1","2","3","4","5","6","7","8
 const C = {id:0,crm:1,nombre:2,ciudad:3,tipo:4,regional:5,comercial:6,celCom:7,correoCom:8,usuAdmin:9,passAdmin:10,usuTM:11,passTM:12,contenidos:13,estudiantes:14,pinActivo:15,docentes:16,asesorIng:17,correoIng:18,telIng:19,asesorRob:20,correoRob:21,telRob:22,asesorDH:23,correoDH:24,telDH:25,canal:26,linea:27};
 
 let datos=[], contactos=[], senso=[];
+let ANIO=null, ANIOS=[], tareas=[], filtroTareas="pendientes";
 let colegioActual=null, censoActual=null;
 let chartInstance=null, modoEdicion=false, modoEdicionCenso=false;
 
@@ -701,7 +945,7 @@ function initFx(){
   });
 }
 document.addEventListener("click",function(e){
-  var t=e.target.closest(".btn,.hdr-btn,.back-btn,.icon-btn,.pin-key,.menu-sheets-btn,.lista-go,.menu-card");
+  var t=e.target.closest(".btn,.hdr-btn,.back-btn,.icon-btn,.pin-key,.menu-sheets-btn,.lista-go,.menu-card,.tarea-check,.anio-btn,.anio-chip,.chip,.btn-mini");
   if(t&&burst){ burst.tune({x:e.clientX,y:e.clientY}).replay(); }
   var b=e.target.closest(".bubbly");
   if(b&&!REDUCED){
@@ -770,6 +1014,7 @@ document.getElementById("pinNumpad").addEventListener("click", function(e) {
 document.addEventListener("keydown", function(e) {
   var o = document.getElementById("pinOverlay");
   if (!o || o.style.display==="none") return;
+  if (o.classList.contains("paso-anio")) return;   // eligiendo año: el teclado no escribe el PIN
   if (e.key>="0"&&e.key<="9") { pinKey(e.key); return; }
   if (e.key==="Backspace") { pinKey("B"); return; }
   if (e.key==="Escape") { pinKey("C"); return; }
@@ -806,14 +1051,11 @@ async function verificarPin(pin){
   if (res.ok) {
     TOKEN=res.token;
     mensajePin("");
-    var ov=document.getElementById("pinOverlay");
-    if (canG()) {
-      gsap.to(ov,{opacity:0,scale:1.06,duration:.45,ease:"power2.in",onComplete:function(){ ov.style.display="none"; gsap.set(ov,{clearProps:"opacity,transform"}); introMenu(); }});
-    } else {
-      ov.style.display="none";
-    }
     pinActual=""; pinBloqueado=false; actualizarDots(false);
-    init();
+    ANIOS=res.anios||[];
+    // Si la sesión venció y vuelves a entrar, sigues en el mismo año sin volver a elegirlo
+    if (ANIO && datos.length && ANIOS.indexOf(ANIO)>=0) { ocultarOverlay(); init(); return; }
+    mostrarSelectorAnio(false);
   } else {
     actualizarDots(true);
     if (canG()) gsap.fromTo(".pin-box",{x:-12},{x:0,duration:.6,ease:"elastic.out(1,.25)"});
@@ -827,12 +1069,14 @@ function sesionExpirada(){
   closeModal();
   pinActual=""; pinBloqueado=false; actualizarDots(false);
   var ov=document.getElementById("pinOverlay");
+  ov.classList.remove("paso-anio");
   ov.style.display="";
   mensajePin("Tu sesión expiró. Ingresa el PIN de nuevo.");
 }
 // Toda comunicación con Google pasa por aquí
 async function llamarScript(payload){
   if (payload.accion!=="login") payload.token=TOKEN;
+  if (ANIO && payload.anio===undefined && payload.accion!=="login") payload.anio=ANIO;
   var resp=await fetch(CONFIG.scriptUrl,{method:"POST",body:JSON.stringify(payload)});
   var res=await resp.json();
   if (res.error==="auth") { sesionExpirada(); throw new Error("auth"); }
@@ -857,12 +1101,10 @@ async function init() {
     try {
       var res=await llamarScript({accion:"leer"});
       if (!res.ok) throw new Error(res.error||"Error al leer Google Sheets");
-      datos=[];
-      (res.datos||[]).forEach(function(r,i){if(r[2]){r._fila=i;datos.push(r);}});
-      contactos=res.contactos||[];
-      senso=(res.senso||[]).map(function(r,i){r._fila=i;return r;});
-      if (!datos.length) throw new Error("No se encontraron colegios en la hoja Datos");
+      aplicarDatos(res);
+      if (!datos.length) throw new Error("No se encontraron colegios en la pestaña "+(res.anio||ANIO||""));
       setStatus(true);
+      if (res.anio && res.anio!==ANIO) { ANIO=res.anio; actualizarChipAnio(); }
     } catch(e) {
       if (e.message==="auth") return;
       setStatus(false);
@@ -874,6 +1116,8 @@ async function init() {
   }
   initBuscador();
   initChart();
+  cargarTareas();
+  iniciarRecordatorios();
 }
 
 // ══════ NAVEGACIÓN ══════
@@ -883,6 +1127,7 @@ function irA(pantalla) {
   else if (pantalla==="crm") { document.getElementById("screenCrm").classList.add("active"); }
   else if (pantalla==="lista") { document.getElementById("screenLista").classList.add("active"); renderLista(); }
   else if (pantalla==="censo") { document.getElementById("screenCenso").classList.add("active"); }
+  else if (pantalla==="tareas") { document.getElementById("screenTareas").classList.add("active"); renderTareas(); }
   window.scrollTo(0,0);
   if (canG()) {
     var scr=document.querySelector(".screen.active");
@@ -1006,10 +1251,12 @@ function renderFicha(r, idx) {
       fSimple("Regional","f_regional",vraw(C.regional))+
       fSimple("Canal de Venta","f_canal",vraw(C.canal))+
       fSimple("Línea","f_linea",vraw(C.linea))+
-      fSimple("Estudiantes","f_est",vraw(C.estudiantes),"number")+
-      fSimple("Activo PIN","f_pin",vraw(C.pinActivo),"number")+
+      fSimple("Estudiantes (automático)","f_est",vraw(C.estudiantes),"number",true)+
+      fSimple("Activo PIN (automático)","f_pin",vraw(C.pinActivo),"number",true)+
       fSimple("N° Docentes","f_doc",vraw(C.docentes),"number")+
     '</div>'+
+    '<div class="sec-title">'+ic("check-square-offset")+' Tareas del colegio</div>'+
+    '<div class="ficha-tareas" id="fichaTareas"></div>'+
     '<div class="sec-title">'+ic("users-three")+' Contactos del Colegio</div>'+
     contactosHTML+
     '<div class="sec-title">'+ic("books")+' Contenidos</div>'+
@@ -1027,6 +1274,7 @@ function renderFicha(r, idx) {
 
   var card=document.getElementById("fichaCard");
   card.innerHTML=html;
+  renderTareasFicha();
   habilitarCampos(modoEdicion);
   // OPT: ajusta solo el textarea de la ficha, en el siguiente cuadro
   requestAnimationFrame(function(){ var t=document.getElementById("f_cont"); if(t) autoResize(t); });
@@ -1037,8 +1285,8 @@ function renderFicha(r, idx) {
   }
 }
 
-function fSimple(label,id,raw,type) {
-  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"></div>';
+function fSimple(label,id,raw,type,ro) {
+  return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+escHtml(raw)+'"'+(ro?' readonly title="Se calcula solo en la hoja"':'')+'></div>';
 }
 function grupoAsesor(titulo,icono,campos){
   return '<div class="asesor-grupo"><div class="asesor-titulo">'+ic(icono)+' '+titulo+'<span class="asesor-vacio-tag">Sin asignar</span></div>'+
@@ -1117,12 +1365,12 @@ async function confirmarGuardar(){
   actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
   mostrarToast("Guardando...");
   try {
-    var res=await llamarScript({accion:"datos",tipo:"datos",hoja:"Datos",fila:filaSheet,valores:fila});
-    if(res.success && res.hoja && res.hoja!=="Datos"){
-      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de Datos. Actualiza google-apps-script.gs","error");
+    var res=await llamarScript({accion:"datos",fila:filaSheet,valores:fila});
+    if(res.success && ANIO && res.hoja && res.hoja!==ANIO){
+      mostrarToast("Atención: se guardó en "+res.hoja+" y no en "+ANIO+". Revisa el Apps Script","error");
       return;
     }
-    mostrarToast(res.success?"Guardado en hoja Datos":(res.error||"Error al guardar"),res.success?"ok":"error");
+    mostrarToast(res.success?"Guardado en la pestaña "+(res.hoja||ANIO||"Datos"):(res.error||"Error al guardar"),res.success?"ok":"error");
   } catch(e){
     if(e.message==="auth") mostrarToast("Sesión expirada: ingresa el PIN y vuelve a guardar","error");
     else mostrarToast("Error de conexión","error");
@@ -1271,14 +1519,11 @@ async function guardarCenso(){
   valores._fila=filaNum;
   if(idx>=0) senso[idx]=valores; else senso.push(valores);
   toggleEdicionCenso();
-  mostrarToast("Guardando censo en SENSO...");
+  mostrarToast("Guardando censo...");
   try {
-    var res=await llamarScript({accion:"senso",tipo:"senso",hoja:"SENSO",fila:filaNum,valores:valores});
-    if(res.success && res.hoja && res.hoja!=="SENSO"){
-      mostrarToast("Error: se guardó en "+res.hoja+" en lugar de SENSO. Actualiza google-apps-script.gs","error");
-      return;
-    }
-    mostrarToast(res.success?"Censo guardado en hoja SENSO":(res.error||"Error al guardar"),res.success?"ok":"error");
+    var res=await llamarScript({accion:"censo",fila:filaNum,valores:valores});
+    mostrarToast(res.success?"Censo guardado en "+(res.hoja||"CENSO"):(res.error||"Error al guardar"),res.success?"ok":"error");
+    if(res.success) setTimeout(refrescarDatos,2500);   // la hoja recalcula Estudiantes con el censo nuevo
   } catch(e){
     if(e.message==="auth") mostrarToast("Sesión expirada: ingresa el PIN y vuelve a guardar","error");
     else mostrarToast("Error de conexión","error");
@@ -1370,6 +1615,432 @@ function cerrarInstalar(){ document.getElementById("modalInstalar").classList.re
 // El service worker solo funciona desde https (GitHub Pages lo es) o localhost
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
   window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+
+// ══════════════════════════════════════════════════════════
+//  AÑOS: cada pestaña con nombre de año (2026, 2027…) es una base de datos
+// ══════════════════════════════════════════════════════════
+function aplicarDatos(res){
+  datos=[];
+  (res.datos||[]).forEach(function(r,i){ if(r[2]){ r._fila=i; datos.push(r); } });
+  contactos=res.contactos||[];
+  senso=(res.senso||[]).map(function(r,i){ r._fila=i; return r; });
+}
+// Tras guardar el censo, la hoja recalcula Estudiantes y Activo pin: se vuelven a leer
+async function refrescarDatos(){
+  try {
+    var res=await llamarScript({accion:"leer"});
+    if(!res.ok) return;
+    aplicarDatos(res);
+    if(colegioActual!==null && datos[colegioActual]){
+      var r=datos[colegioActual];
+      actualizarChart(r);
+      var e=document.getElementById("f_est"), p=document.getElementById("f_pin");
+      if(e) e.value=r[C.estudiantes]||"";
+      if(p) p.value=r[C.pinActivo]||"";
+    }
+  } catch(e){}
+}
+function ocultarOverlay(){
+  var ov=document.getElementById("pinOverlay");
+  var fin=function(){ ov.style.display="none"; ov.classList.remove("paso-anio"); if(canG()) gsap.set(ov,{clearProps:"opacity,transform"}); introMenu(); };
+  if(canG()) gsap.to(ov,{opacity:0,scale:1.06,duration:.45,ease:"power2.in",onComplete:fin}); else fin();
+}
+function renderAnioGrid(){
+  var grid=document.getElementById("anioGrid");
+  var guardado=null; try{ guardado=localStorage.getItem("crm_anio"); }catch(e){}
+  var actual=ANIO||guardado||ANIOS[0];
+  if(!ANIOS.length){
+    grid.innerHTML='<div class="anio-vacio">No encontré pestañas con nombre de año (por ejemplo <b>2026</b>). Revisa tu hoja y que el Apps Script esté actualizado.</div>'+
+      '<button class="btn btn-guardar" style="grid-column:1/-1;justify-content:center" onclick="elegirAnio(null)">Continuar</button>';
+    return;
+  }
+  grid.innerHTML=ANIOS.map(function(a,i){
+    return '<button class="anio-btn'+(a===actual?' actual':'')+'" onclick="elegirAnio(\''+a+'\')">'+
+      '<span class="anio-num">'+a+'</span><span class="anio-tag">'+(i===0?'Más reciente':'Año')+'</span></button>';
+  }).join("");
+}
+function mostrarSelectorAnio(puedeCerrar){
+  var ov=document.getElementById("pinOverlay"), box=document.getElementById("anioBox");
+  renderAnioGrid();
+  box.classList.toggle("puede-cerrar",!!puedeCerrar);
+  ov.classList.add("paso-anio");
+  ov.style.display="";
+  if(canG()){
+    gsap.set(ov,{clearProps:"opacity,transform"});
+    gsap.fromTo(box,{scale:.9,opacity:0,y:20},{scale:1,opacity:1,y:0,duration:.5,ease:"back.out(1.8)",clearProps:"transform,opacity"});
+    gsap.from(box.querySelectorAll(".anio-btn"),{y:16,opacity:0,duration:.4,stagger:.07,delay:.15,ease:"power2.out",clearProps:"transform,opacity"});
+  }
+}
+// Desde el menú: muestra los años y busca si se creó una pestaña nueva
+async function abrirSelectorAnio(){
+  mostrarSelectorAnio(true);
+  try {
+    var res=await llamarScript({accion:"anios"});
+    if(res.ok && JSON.stringify(res.anios)!==JSON.stringify(ANIOS)){ ANIOS=res.anios; renderAnioGrid(); }
+  } catch(e){}
+}
+function cerrarSelectorAnio(){ ocultarOverlay(); }
+function elegirAnio(a){
+  var cambio=(a!==ANIO);
+  ANIO=a;
+  try{ if(a) localStorage.setItem("crm_anio",a); }catch(e){}
+  actualizarChipAnio();
+  if(cambio && datos.length) reiniciarDatosAnio();
+  ocultarOverlay();
+  init();
+  if(cambio && a) mostrarToast("Año "+a,"ok");
+}
+function actualizarChipAnio(){
+  var chip=document.getElementById("anioChip");
+  if(chip){
+    chip.style.display=ANIO?"inline-flex":"none";
+    chip.innerHTML=ic("calendar-blank")+" Año "+(ANIO||"")+" "+ic("caret-down","bold");
+  }
+  document.querySelectorAll(".anio-txt").forEach(function(el){ el.textContent=ANIO?" · "+ANIO:""; });
+  document.title=ANIO?"CRM Colegios · "+ANIO:"CRM Colegios";
+}
+function reiniciarDatosAnio(){
+  datos=[]; contactos=[]; senso=[]; colegioActual=null; censoActual=null;
+  if(modoEdicion) toggleEdicion();
+  if(modoEdicionCenso) toggleEdicionCenso();
+  document.getElementById("searchInput").value="";
+  document.getElementById("censoSearch").value="";
+  document.getElementById("listaSearch").value="";
+  document.getElementById("fichaCard").innerHTML='<div class="ficha-empty"><span>'+ic("buildings")+'</span>Busca o selecciona un colegio</div>';
+  document.getElementById("credContent").innerHTML='<div class="cred-empty">Selecciona un colegio</div>';
+  document.getElementById("censoContent").innerHTML='<div class="ficha-empty"><span>'+ic("chart-bar")+'</span>Selecciona un colegio para ver el censo</div>';
+  actualizarChart(null);
+  irA("menu");
+}
+
+// ══════════════════════════════════════════════════════════
+//  TAREAS
+// ══════════════════════════════════════════════════════════
+function venc(t){
+  if(!t.fecha||!t.hora) return null;
+  var d=new Date(t.fecha+"T"+t.hora+":00");
+  return isNaN(d.getTime())?null:d.getTime();
+}
+function fechaISO(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtFechaHora(t){
+  var ts=venc(t); if(!ts) return t.fecha||"";
+  var d=new Date(ts), hoy=new Date(), man=new Date(); man.setDate(hoy.getDate()+1);
+  var dia = fechaISO(d)===fechaISO(hoy) ? "Hoy" : fechaISO(d)===fechaISO(man) ? "Mañana"
+          : d.toLocaleDateString("es-CO",{weekday:"short",day:"numeric",month:"short"});
+  return dia+" · "+d.toLocaleTimeString("es-CO",{hour:"numeric",minute:"2-digit"});
+}
+function buscarTarea(id){ for(var i=0;i<tareas.length;i++) if(tareas[i].id===id) return tareas[i]; return null; }
+function deColegio(t,r){
+  var id=String(r[C.id]||"").trim();
+  if(id && t.colegioId) return String(t.colegioId).trim()===id;
+  return String(t.colegio||"").trim().toUpperCase()===String(r[C.nombre]||"").trim().toUpperCase();
+}
+function ordenTareas(a,b){
+  if(a.hecha!==b.hecha) return a.hecha?1:-1;
+  if(!a.hecha){
+    var va=venc(a), vb=venc(b);
+    if(va&&vb) return va-vb;
+    if(va) return -1; if(vb) return 1;
+  }
+  return String(b.creada).localeCompare(String(a.creada));
+}
+function contarTareas(){
+  var p=0,h=0,v=0,now=Date.now();
+  tareas.forEach(function(t){ if(t.hecha) h++; else { p++; var ts=venc(t); if(ts&&ts<=now) v++; } });
+  return {p:p,h:h,v:v};
+}
+function htmlTarea(t,compacto){
+  var ts=venc(t), vencida=!t.hecha&&ts&&ts<=Date.now();
+  var meta="";
+  if(!compacto && t.colegio) meta+='<span class="tag">'+ic("buildings")+'<span>'+escHtml(t.colegio)+'</span></span>';
+  if(t.fecha) meta+='<span class="tag '+(vencida?"rojo":(t.hecha?"verde":"morado"))+'">'+ic(vencida?"warning-circle":"alarm")+'<span>'+escHtml(fmtFechaHora(t))+(vencida?" · vencida":"")+'</span></span>';
+  if(t.calendario && !t.hecha) meta+='<span class="tag">'+ic("calendar-check")+'<span>Calendar</span></span>';
+  return '<div class="tarea-item'+(t.hecha?' hecha':'')+(vencida?' vencida':'')+'">'+
+    '<button class="tarea-check" onclick="toggleTarea(\''+jsArg(t.id)+'\')" title="'+(t.hecha?'Marcar como pendiente':'Marcar como hecha')+'">'+ic("check","bold")+'</button>'+
+    '<div class="tarea-info"><div class="tarea-texto">'+escHtml(t.tarea)+'</div>'+(meta?'<div class="tarea-meta">'+meta+'</div>':'')+'</div>'+
+    '<button class="tarea-borrar" onclick="borrarTareaUI(\''+jsArg(t.id)+'\')" title="Borrar tarea">'+ic("trash")+'</button></div>';
+}
+var ultimoVencidas=-1;
+function renderTareas(){
+  var cont=document.getElementById("tareasLista"); if(!cont) return;
+  var q=(document.getElementById("tareasSearch").value||"").trim().toUpperCase();
+  var c=contarTareas(); ultimoVencidas=c.v;
+  document.getElementById("nPend").textContent=c.p;
+  document.getElementById("nHechas").textContent=c.h;
+  document.querySelectorAll("#tareasChips .chip").forEach(function(b){ b.classList.toggle("activo",b.getAttribute("data-f")===filtroTareas); });
+  actualizarBannerNotif();
+  var lista=tareas.filter(function(t){
+    if(filtroTareas==="pendientes"&&t.hecha) return false;
+    if(filtroTareas==="hechas"&&!t.hecha) return false;
+    if(q && (t.tarea+" "+t.colegio).toUpperCase().indexOf(q)<0) return false;
+    return true;
+  }).sort(ordenTareas);
+  if(!lista.length){
+    var msg=!tareas.length?"Aún no tienes tareas. ¡Crea la primera!":(q?"Ninguna tarea coincide con la búsqueda":(filtroTareas==="pendientes"?"¡Todo al día! No tienes tareas pendientes":"No hay tareas aquí"));
+    cont.innerHTML='<div class="ficha-empty"><span>'+ic(filtroTareas==="pendientes"&&tareas.length?"confetti":"check-square-offset")+'</span>'+msg+'</div>';
+    return;
+  }
+  cont.innerHTML=lista.map(function(t){ return htmlTarea(t,false); }).join("");
+}
+var renderTareasDebounced=debounce(renderTareas,150);
+function filtrarTareas(f){ filtroTareas=f; renderTareas(); }
+function renderTareasFicha(){
+  var el=document.getElementById("fichaTareas"); if(!el||colegioActual===null) return;
+  var r=datos[colegioActual]; if(!r) return;
+  var mias=tareas.filter(function(t){ return deColegio(t,r); });
+  var pend=mias.filter(function(t){ return !t.hecha; }).sort(ordenTareas);
+  var hechas=mias.length-pend.length;
+  el.innerHTML=(pend.length?pend.map(function(t){ return htmlTarea(t,true); }).join(""):'<div class="no-contactos">Sin tareas pendientes</div>')+
+    (hechas?'<div class="ficha-tareas-hechas">'+hechas+(hechas>1?' tareas hechas':' tarea hecha')+'</div>':'')+
+    '<button class="btn-mini" onclick="abrirNuevaTarea('+colegioActual+')">'+ic("plus","bold")+' Nueva tarea para este colegio</button>';
+}
+function actualizarBadgeTareas(){
+  var c=contarTareas(), b=document.getElementById("tareasBadge");
+  if(b){ b.textContent=c.p; b.classList.toggle("show",c.p>0); b.classList.toggle("suave",c.v===0); b.title=c.v?c.v+" vencidas":""; }
+  // Número sobre el ícono de la app instalada (Android / iPhone que lo permitan)
+  try{ if("setAppBadge" in navigator){ c.p?navigator.setAppBadge(c.p):navigator.clearAppBadge(); } }catch(e){}
+}
+function refrescarVistasTareas(){
+  if(document.getElementById("screenTareas").classList.contains("active")) renderTareas();
+  renderTareasFicha();
+  actualizarBadgeTareas();
+}
+async function cargarTareas(){
+  try {
+    var res=await llamarScript({accion:"tareas_listar"});
+    if(!res.ok) return;
+    tareas=res.tareas||[];
+    // Limpia avisos guardados de tareas que ya no existen
+    var av=leerMapa("crm_avisadas"), po=leerMapa("crm_pospuestas"), ids={};
+    tareas.forEach(function(t){ ids[t.id]=1; });
+    Object.keys(av).forEach(function(k){ if(!ids[k]) delete av[k]; });
+    Object.keys(po).forEach(function(k){ if(!ids[k]) delete po[k]; });
+    guardarMapa("crm_avisadas",av); guardarMapa("crm_pospuestas",po);
+    refrescarVistasTareas();
+    revisarRecordatorios();
+  } catch(e){}
+}
+
+// Formulario
+function abrirNuevaTarea(idx){
+  if(!TOKEN){ mostrarToast("Ingresa con tu PIN primero","error"); return; }
+  var sel=document.getElementById("tColegio");
+  sel.innerHTML='<option value="">— General (sin colegio) —</option>'+datos.map(function(r,i){ return '<option value="'+i+'">'+escHtml(r[C.nombre])+'</option>'; }).join("");
+  sel.value=(idx!==undefined&&idx!==null&&datos[idx])?String(idx):"";
+  document.getElementById("tTexto").value="";
+  document.getElementById("tRecordar").checked=false;
+  var d=new Date(Date.now()+60*60000); d.setMinutes(0,0,0);
+  document.getElementById("tFecha").value=fechaISO(d);
+  document.getElementById("tFecha").min=fechaISO(new Date());
+  document.getElementById("tHora").value=String(d.getHours()).padStart(2,"0")+":00";
+  document.getElementById("tCalendario").checked=true;
+  toggleRecordar();
+  document.getElementById("modalTarea").classList.add("active");
+  if(canG()) gsap.fromTo("#modalTarea .modal",{y:30,opacity:0,scale:.96},{y:0,opacity:1,scale:1,duration:.4,ease:"back.out(1.6)",clearProps:"transform,opacity"});
+  if(FINE) setTimeout(function(){ document.getElementById("tTexto").focus(); },250);
+}
+function toggleRecordar(){ document.getElementById("tRecordarCampos").classList.toggle("show",document.getElementById("tRecordar").checked); }
+function cerrarNuevaTarea(){ document.getElementById("modalTarea").classList.remove("active"); }
+async function guardarTarea(){
+  desbloquearAudio();
+  var txt=document.getElementById("tTexto").value.trim();
+  if(!txt){ mostrarToast("Escribe qué tienes que hacer","error"); document.getElementById("tTexto").focus(); return; }
+  var sel=document.getElementById("tColegio").value, r=(sel!=="")?datos[+sel]:null;
+  var rec=document.getElementById("tRecordar").checked;
+  var fecha=rec?document.getElementById("tFecha").value:"", hora=rec?document.getElementById("tHora").value:"";
+  if(rec && (!fecha||!hora)){ mostrarToast("Elige el día y la hora del recordatorio","error"); return; }
+  if(rec && new Date(fecha+"T"+hora+":00").getTime()<Date.now()-60000){ mostrarToast("Esa fecha y hora ya pasaron","error"); return; }
+  // El permiso de notificaciones se pide aquí porque el navegador exige que sea al tocar un botón
+  if(rec && ("Notification" in window) && Notification.permission==="default"){ try{ Notification.requestPermission().then(actualizarBannerNotif); }catch(e){} }
+  var t={anio:ANIO||"",colegioId:r?(r[C.id]||""):"",colegio:r?r[C.nombre]:"",tarea:txt,fecha:fecha,hora:hora,
+         calendario:rec&&document.getElementById("tCalendario").checked};
+  var btn=document.getElementById("btnGuardarTarea"); btn.disabled=true;
+  mostrarToast("Guardando tarea...");
+  try {
+    var res=await llamarScript({accion:"tarea_crear",tarea:t});
+    if(!res.ok) throw new Error(res.error||"No se pudo guardar la tarea");
+    tareas.push(res.tarea);
+    cerrarNuevaTarea();
+    refrescarVistasTareas();
+    mostrarToast(res.tarea.calendario?"Tarea guardada · también en Google Calendar":"Tarea guardada","ok");
+  } catch(e){
+    if(e.message!=="auth") mostrarToast(e.message==="Failed to fetch"?"Error de conexión":(e.message||"Error de conexión"),"error");
+  } finally { btn.disabled=false; }
+}
+async function toggleTarea(id){
+  var t=buscarTarea(id); if(!t) return;
+  var antes=t.hecha; t.hecha=!antes;
+  if(t.hecha) marcarAvisada(id);
+  refrescarVistasTareas();
+  try {
+    var res=await llamarScript({accion:"tarea_actualizar",id:id,hecha:t.hecha});
+    if(!res.ok) throw new Error(res.error);
+    t.calendario=!!res.calendario;
+    if(t.hecha) mostrarToast("¡Tarea completada!","ok");
+    refrescarVistasTareas();
+  } catch(e){
+    t.hecha=antes; refrescarVistasTareas();
+    if(e.message!=="auth") mostrarToast("No se pudo actualizar la tarea","error");
+  }
+}
+async function borrarTareaUI(id){
+  var t=buscarTarea(id); if(!t) return;
+  var ok=await confirmar("¿Borrar esta tarea?",'"'+t.tarea.slice(0,120)+'"'+(t.calendario?" También se quitará de Google Calendar.":""));
+  if(!ok) return;
+  var pos=tareas.indexOf(t); tareas.splice(pos,1); refrescarVistasTareas();
+  try {
+    var res=await llamarScript({accion:"tarea_borrar",id:id});
+    if(!res.ok) throw new Error(res.error);
+    mostrarToast("Tarea borrada","ok");
+  } catch(e){
+    tareas.splice(pos,0,t); refrescarVistasTareas();
+    if(e.message!=="auth") mostrarToast("No se pudo borrar la tarea","error");
+  }
+}
+var _confResolver=null;
+function confirmar(titulo,texto){
+  document.getElementById("confTitulo").textContent=titulo;
+  document.getElementById("confTexto").textContent=texto;
+  document.getElementById("modalConfirmar").classList.add("active");
+  if(canG()) gsap.fromTo("#modalConfirmar .modal",{scale:.85,opacity:0},{scale:1,opacity:1,duration:.35,ease:"back.out(2)",clearProps:"transform,opacity"});
+  return new Promise(function(res){ _confResolver=res; });
+}
+function resolverConfirmar(v){
+  document.getElementById("modalConfirmar").classList.remove("active");
+  if(_confResolver){ var f=_confResolver; _confResolver=null; f(v); }
+}
+
+// ══════════════════════════════════════════════════════════
+//  RECORDATORIOS: ventana en mitad de la pantalla + sonido + notificación
+// ══════════════════════════════════════════════════════════
+function leerMapa(k){ try{ return JSON.parse(localStorage.getItem(k)||"{}")||{}; }catch(e){ return {}; } }
+function guardarMapa(k,m){ try{ localStorage.setItem(k,JSON.stringify(m)); }catch(e){} }
+function marcarAvisada(id){
+  var av=leerMapa("crm_avisadas"); av[id]=Date.now(); guardarMapa("crm_avisadas",av);
+  var po=leerMapa("crm_pospuestas"); delete po[id]; guardarMapa("crm_pospuestas",po);
+}
+var recCola=[], recActual=null, recTimer=null;
+function iniciarRecordatorios(){
+  if(recTimer) return;
+  recTimer=setInterval(revisarRecordatorios,20000);
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) revisarRecordatorios(); });
+}
+function revisarRecordatorios(){
+  if(!TOKEN) return;
+  var ov=document.getElementById("pinOverlay");
+  if(ov && ov.style.display!=="none") return;          // aún en el PIN o eligiendo año
+  var av=leerMapa("crm_avisadas"), po=leerMapa("crm_pospuestas"), now=Date.now();
+  tareas.forEach(function(t){
+    if(t.hecha) return;
+    var ts=venc(t); if(!ts||ts>now) return;
+    if(av[t.id]) return;
+    if(po[t.id] && po[t.id]>now) return;
+    if(recActual && recActual.id===t.id) return;
+    if(recCola.some(function(x){ return x.id===t.id; })) return;
+    recCola.push(t);
+  });
+  if(!recActual && recCola.length) mostrarSiguienteRecordatorio();
+  // Actualiza "vencida" en pantalla cuando llega la hora
+  var c=contarTareas();
+  if(c.v!==ultimoVencidas){ ultimoVencidas=c.v; refrescarVistasTareas(); } else actualizarBadgeTareas();
+}
+function mostrarSiguienteRecordatorio(){
+  recActual=recCola.shift()||null;
+  var m=document.getElementById("modalRecordatorio");
+  if(!recActual){ m.classList.remove("active"); return; }
+  var t=recActual;
+  document.getElementById("recTexto").textContent=t.tarea;
+  document.getElementById("recMeta").innerHTML=
+    (t.colegio?'<span class="tag">'+ic("buildings")+'<span>'+escHtml(t.colegio)+'</span></span>':'')+
+    '<span class="tag rojo">'+ic("alarm")+'<span>'+escHtml(fmtFechaHora(t))+'</span></span>';
+  document.getElementById("recCola").textContent=recCola.length?("Tienes "+recCola.length+" recordatorio"+(recCola.length>1?"s":"")+" más"):"";
+  m.classList.add("active");
+  if(canG()) gsap.fromTo("#modalRecordatorio .modal",{scale:.7,opacity:0},{scale:1,opacity:1,duration:.55,ease:"elastic.out(1,.6)",clearProps:"transform,opacity"});
+  sonarAlarma();
+  notificarSistema(t);
+}
+function recordatorioHecha(){
+  var t=recActual;
+  if(t){ marcarAvisada(t.id); if(!t.hecha) toggleTarea(t.id); }
+  siguienteRecordatorio();
+}
+function recordatorioPosponer(){
+  var t=recActual;
+  if(t){ var po=leerMapa("crm_pospuestas"); po[t.id]=Date.now()+10*60000; guardarMapa("crm_pospuestas",po); mostrarToast("Te lo recuerdo en 10 minutos"); }
+  siguienteRecordatorio();
+}
+function recordatorioCerrar(){ if(recActual) marcarAvisada(recActual.id); siguienteRecordatorio(); }
+function siguienteRecordatorio(){
+  document.getElementById("modalRecordatorio").classList.remove("active");
+  recActual=null;
+  setTimeout(mostrarSiguienteRecordatorio,350);
+}
+
+// Sonido: se genera en el navegador (no necesita archivos)
+var audioCtx=null;
+function desbloquearAudio(){
+  try{
+    if(!audioCtx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC(); }
+    if(audioCtx && audioCtx.state==="suspended") audioCtx.resume();
+  }catch(e){}
+}
+document.addEventListener("pointerdown",desbloquearAudio,{passive:true});
+function sonarAlarma(){
+  desbloquearAudio();
+  if(audioCtx){
+    try{
+      var t0=audioCtx.currentTime+0.05;
+      [0,0.9].forEach(function(rep){
+        [[880,0],[1175,0.16],[1568,0.32]].forEach(function(n){
+          var o=audioCtx.createOscillator(), g=audioCtx.createGain(), s=t0+rep+n[1];
+          o.type="sine"; o.frequency.value=n[0];
+          g.gain.setValueAtTime(0.0001,s);
+          g.gain.exponentialRampToValueAtTime(0.35,s+0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001,s+0.45);
+          o.connect(g); g.connect(audioCtx.destination); o.start(s); o.stop(s+0.5);
+        });
+      });
+    }catch(e){}
+  }
+  if(navigator.vibrate) navigator.vibrate([300,120,300,120,300]);
+}
+
+// Notificación del sistema (cuando la app está abierta pero en segundo plano)
+function notificarSistema(t){
+  if(!("Notification" in window) || Notification.permission!=="granted" || !document.hidden) return;
+  var titulo="⏰ Tarea pendiente";
+  var op={body:t.tarea+(t.colegio?"\n"+t.colegio:""),icon:"img/icon-192.png",badge:"img/icon-192.png",
+          tag:"tarea-"+t.id,requireInteraction:true,vibrate:[300,120,300],data:{id:t.id}};
+  if(navigator.serviceWorker && navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(function(reg){ return reg.showNotification(titulo,op); })
+      .catch(function(){ try{ new Notification(titulo,op); }catch(e){} });
+  } else { try{ new Notification(titulo,op); }catch(e){} }
+}
+function actualizarBannerNotif(){
+  var b=document.getElementById("notifBanner"), btn=document.getElementById("btnNotif");
+  if(!b) return;
+  var estado=("Notification" in window)?Notification.permission:"no";
+  if(btn) btn.classList.toggle("edit-active",estado==="granted");
+  if(estado==="default"){
+    b.innerHTML=ic("bell-ringing")+'<span>Activa las notificaciones para que el celular te avise de tus tareas.</span><button class="btn btn-guardar" onclick="activarNotificaciones()">Activar</button>';
+    b.classList.add("show");
+  } else if(estado==="no" && typeof esIOS!=="undefined" && esIOS && !esApp){
+    b.innerHTML=ic("info")+'<span>En iPhone, instala la app en tu pantalla de inicio para recibir notificaciones.</span>';
+    b.classList.add("show");
+  } else b.classList.remove("show");
+}
+async function activarNotificaciones(){
+  desbloquearAudio();
+  if(!("Notification" in window)){
+    mostrarToast((typeof esIOS!=="undefined"&&esIOS)?"En iPhone primero instala la app en la pantalla de inicio":"Este navegador no permite notificaciones","error"); return;
+  }
+  if(Notification.permission==="denied"){ mostrarToast("Las notificaciones están bloqueadas: actívalas en los ajustes del navegador","error"); return; }
+  if(Notification.permission==="granted"){ mostrarToast("Las notificaciones ya están activas","ok"); sonarAlarma(); return; }
+  var p=await Notification.requestPermission();
+  actualizarBannerNotif();
+  if(p==="granted"){ mostrarToast("Notificaciones activadas","ok"); sonarAlarma(); }
+  else mostrarToast("No se activaron las notificaciones","error");
 }
 </script>
 </body>
