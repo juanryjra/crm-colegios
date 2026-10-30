@@ -579,6 +579,22 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   .hp-btn{width:46px;} .hp-val{min-width:48px;font-size:1.8rem;} .hp-ap{padding:9px 9px;}
 }
 
+/* Reloj: lista de números */
+.hp-val{cursor:pointer;border-radius:10px;transition:background-color .15s;}
+.hp-val:hover,.hp-val.abierto{background:white;box-shadow:0 0 0 2px var(--azul-claro);}
+.hp-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin-top:8px;max-height:216px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px;background:white;border:1.5px solid var(--azul-suave);border-radius:12px;}
+.hp-grid.show{display:grid;}
+.hp-op{border:none;background:var(--gris);color:var(--azul2);border-radius:9px;padding:10px 0;font-family:var(--font-display);font-weight:700;font-size:.95rem;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;}
+.hp-op:hover{background:var(--azul-fondo);}
+.hp-op.activo{background:var(--azul);color:#fff;}
+.hp-ayuda{font-size:.72rem;color:#999;margin-top:6px;text-align:center;}
+.hp-btn{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+
+.push-nota{display:flex;align-items:flex-start;gap:8px;font-size:.78rem;color:#6D4C41;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:9px 11px;margin:0 0 12px;line-height:1.35;}
+.push-nota:empty{display:none;}
+.push-nota i{font-size:1.05rem;flex-shrink:0;margin-top:1px;}
+.push-nota.ok{background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32;}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -677,21 +693,23 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
           <label>Hora</label>
           <div class="hora-picker">
             <div class="hp-col">
-              <button type="button" class="hp-btn" onclick="hpCambiar('h',1)" aria-label="Subir hora"><i class="ph-bold ph-caret-up"></i></button>
-              <div class="hp-val" id="hpH">09</div>
-              <button type="button" class="hp-btn" onclick="hpCambiar('h',-1)" aria-label="Bajar hora"><i class="ph-bold ph-caret-down"></i></button>
+              <button type="button" class="hp-btn" data-campo="h" data-d="1" aria-label="Subir hora"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpH" role="button" tabindex="0" title="Toca para elegir la hora" onclick="hpGrid('h')">09</div>
+              <button type="button" class="hp-btn" data-campo="h" data-d="-1" aria-label="Bajar hora"><i class="ph-bold ph-caret-down"></i></button>
             </div>
             <div class="hp-sep">:</div>
             <div class="hp-col">
-              <button type="button" class="hp-btn" onclick="hpCambiar('m',1)" aria-label="Subir minutos"><i class="ph-bold ph-caret-up"></i></button>
-              <div class="hp-val" id="hpM">00</div>
-              <button type="button" class="hp-btn" onclick="hpCambiar('m',-1)" aria-label="Bajar minutos"><i class="ph-bold ph-caret-down"></i></button>
+              <button type="button" class="hp-btn" data-campo="m" data-d="1" aria-label="Subir minutos"><i class="ph-bold ph-caret-up"></i></button>
+              <div class="hp-val" id="hpM" role="button" tabindex="0" title="Toca para elegir los minutos" onclick="hpGrid('m')">00</div>
+              <button type="button" class="hp-btn" data-campo="m" data-d="-1" aria-label="Bajar minutos"><i class="ph-bold ph-caret-down"></i></button>
             </div>
             <div class="hp-ampm">
               <button type="button" class="hp-ap" id="hpAm" onclick="hpAmPm(false)">a. m.</button>
               <button type="button" class="hp-ap" id="hpPm" onclick="hpAmPm(true)">p. m.</button>
             </div>
           </div>
+          <div class="hp-grid" id="hpGrid"></div>
+          <div class="hp-ayuda">Toca un número para elegirlo de la lista, o mantén presionada una flecha para avanzar rápido.</div>
           <input type="hidden" id="tHora">
         </div>
         <div class="form-row">
@@ -708,6 +726,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
           </select>
         </div>
         <div class="rec-resumen" id="tResumen"></div>
+        <div class="push-nota" id="tPushNota"></div>
         <label class="switch-row" for="tCalendario">
           <span class="sw-txt"><i class="ph-duotone ph-calendar-plus"></i><span>Avisar también con Google Calendar<small>Te llega al celular aunque la app esté cerrada</small></span></span>
           <span class="switch"><input type="checkbox" id="tCalendario" checked><span class="slider"></span></span>
@@ -717,6 +736,20 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     <div class="modal-btns">
       <button type="button" class="btn btn-limpiar" onclick="cerrarNuevaTarea()">Cancelar</button>
       <button type="button" class="btn btn-guardar bubbly" id="btnGuardarTarea" onclick="guardarTarea()"><i class="ph-bold ph-check-circle"></i> Guardar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACIONES (estado y prueba) -->
+<div class="modal-overlay" id="modalNotif" onclick="if(event.target===this)cerrarNotif()">
+  <div class="modal">
+    <div class="modal-icon" style="color:#43A047"><i class="ph-duotone ph-bell-ringing"></i></div>
+    <h3>Avisos activos</h3>
+    <p id="notifTexto">Este dispositivo recibe los avisos de tus tareas aunque la app esté cerrada.</p>
+    <div class="modal-btns col">
+      <button class="btn btn-guardar" id="btnProbarPush" onclick="probarPush()"><i class="ph-bold ph-paper-plane-tilt"></i> Enviar una prueba</button>
+      <button class="btn btn-limpiar" onclick="desactivarPush()"><i class="ph-bold ph-bell-slash"></i> Desactivar en este dispositivo</button>
+      <button class="btn btn-limpiar" onclick="cerrarNotif()">Cerrar</button>
     </div>
   </div>
 </div>
@@ -897,7 +930,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <p>Pendientes y recordatorios</p>
     </div>
     <div class="header-actions">
-      <button class="hdr-btn" id="btnNotif" title="Activar notificaciones" onclick="activarNotificaciones()"><i class="ph-duotone ph-bell-ringing"></i></button>
+      <button class="hdr-btn" id="btnNotif" title="Notificaciones" onclick="abrirNotif()"><i class="ph-duotone ph-bell-ringing"></i></button>
       <button class="hdr-btn" title="Nueva tarea" onclick="abrirNuevaTarea()"><i class="ph-bold ph-plus"></i></button>
     </div>
   </div>
@@ -1194,6 +1227,8 @@ async function init() {
   initChart();
   cargarTareas();
   iniciarRecordatorios();
+  sincronizarPush();
+  irInicialSiHay();
 }
 
 // ══════ NAVEGACIÓN ══════
@@ -1912,14 +1947,15 @@ function abrirNuevaTarea(idx){
   document.getElementById("tAviso").value=(avG!==null&&document.querySelector('#tAviso option[value="'+avG+'"]'))?avG:"10";
   fijarFechaHora(d);
   renderAtajos();
-  document.getElementById("tCalendario").checked=true;
+  document.getElementById("tCalendario").checked=!PUSH_ACTIVO;   // si la app ya te avisa, Calendar queda apagado
+  actualizarNotaPush();
   toggleRecordar();
   document.getElementById("modalTarea").classList.add("active");
   if(canG()) gsap.fromTo("#modalTarea .modal",{y:(innerWidth<=600?160:30),opacity:0,scale:(innerWidth<=600?1:.96)},{y:0,opacity:1,scale:1,duration:.4,ease:"back.out(1.6)",clearProps:"transform,opacity"});
   if(FINE) setTimeout(function(){ document.getElementById("tTexto").focus(); },250);
   try{ history.pushState({p:pantallaActual(),modal:true},""); }catch(e){}   // "atrás" cierra el formulario
 }
-function toggleRecordar(){ document.getElementById("tRecordarCampos").classList.toggle("show",document.getElementById("tRecordar").checked); actualizarResumen(); }
+function toggleRecordar(){ document.getElementById("tRecordarCampos").classList.toggle("show",document.getElementById("tRecordar").checked); actualizarResumen(); actualizarNotaPush(); }
 function cerrarNuevaTarea(){
   var m=document.getElementById("modalTarea"), abierto=m.classList.contains("active");
   m.classList.remove("active");
@@ -2055,7 +2091,8 @@ function mostrarSiguienteRecordatorio(){
   m.classList.add("active");
   if(canG()) gsap.fromTo("#modalRecordatorio .modal",{scale:.7,opacity:0},{scale:1,opacity:1,duration:.55,ease:"elastic.out(1,.6)",clearProps:"transform,opacity"});
   sonarAlarma();
-  notificarSistema(t,"⏰ "+titulo);
+  cerrarNotificacionSistema(t,pre);
+  notificarSistema(t,"⏰ "+titulo,pre);
 }
 function recordatorioHecha(){
   var it=recActual;
@@ -2107,11 +2144,20 @@ function sonarAlarma(){
 }
 
 // Notificación del sistema (cuando la app está abierta pero en segundo plano)
-function notificarSistema(t,titulo){
+// Si la ventana de la app ya se muestra, se retira la notificación del sistema para no duplicar
+function cerrarNotificacionSistema(t,pre){
+  try{
+    if(!navigator.serviceWorker) return;
+    navigator.serviceWorker.ready.then(function(reg){
+      return reg.getNotifications({tag:"tarea-"+t.id+(pre?"-pre":"")}).then(function(l){ l.forEach(function(n){ n.close(); }); });
+    }).catch(function(){});
+  }catch(e){}
+}
+function notificarSistema(t,titulo,pre){
   if(!("Notification" in window) || Notification.permission!=="granted" || !document.hidden) return;
   titulo=titulo||"⏰ Tarea pendiente";
   var op={body:t.tarea+(t.colegio?"\n"+t.colegio:""),icon:"img/icon-192.png",badge:"img/icon-192.png",
-          tag:"tarea-"+t.id,requireInteraction:true,vibrate:[300,120,300],data:{id:t.id}};
+          tag:"tarea-"+t.id+(pre?"-pre":""),requireInteraction:true,vibrate:[300,120,300],data:{id:t.id,url:"./?ir=tareas"}};
   if(navigator.serviceWorker && navigator.serviceWorker.controller){
     navigator.serviceWorker.ready.then(function(reg){ return reg.showNotification(titulo,op); })
       .catch(function(){ try{ new Notification(titulo,op); }catch(e){} });
@@ -2121,44 +2167,197 @@ function actualizarBannerNotif(){
   var b=document.getElementById("notifBanner"), btn=document.getElementById("btnNotif");
   if(!b) return;
   var estado=("Notification" in window)?Notification.permission:"no";
-  if(btn) btn.classList.toggle("edit-active",estado==="granted");
+  if(btn) btn.classList.toggle("edit-active",estado==="granted"&&PUSH_ACTIVO);
   if(estado==="default"){
-    b.innerHTML=ic("bell-ringing")+'<span>Activa las notificaciones para que el celular te avise de tus tareas.</span><button class="btn btn-guardar" onclick="activarNotificaciones()">Activar</button>';
+    b.innerHTML=ic("bell-ringing")+'<span>Activa las notificaciones para que la app te avise de tus tareas, incluso cerrada.</span><button class="btn btn-guardar" onclick="activarNotificaciones()">Activar</button>';
+    b.classList.add("show");
+  } else if(estado==="granted" && !PUSH_ACTIVO){
+    b.innerHTML=ic("plugs")+'<span>'+escHtml(PUSH_MOTIVO||"Falta conectar los avisos con la app cerrada.")+'</span><button class="btn btn-guardar" onclick="activarNotificaciones()">Conectar</button>';
     b.classList.add("show");
   } else if(estado==="no" && typeof esIOS!=="undefined" && esIOS && !esApp){
     b.innerHTML=ic("info")+'<span>En iPhone, instala la app en tu pantalla de inicio para recibir notificaciones.</span>';
     b.classList.add("show");
   } else b.classList.remove("show");
+  actualizarNotaPush();
+}
+function actualizarNotaPush(){
+  var el=document.getElementById("tPushNota"); if(!el) return;
+  if(!document.getElementById("tRecordar").checked){ el.innerHTML=""; el.className="push-nota"; return; }
+  if(PUSH_ACTIVO){ el.className="push-nota ok"; el.innerHTML=ic("bell-ringing")+"<span>La app te avisará en este dispositivo, aunque esté cerrada.</span>"; }
+  else { el.className="push-nota"; el.innerHTML=ic("info")+"<span>Para que la app te avise cerrada, activa las notificaciones con la campana. Mientras tanto puedes usar Google Calendar.</span>"; }
+}
+
+// ══════ AVISOS CON LA APP CERRADA (Firebase Cloud Messaging) ══════
+var PUSH_ACTIVO=false, PUSH_MOTIVO="", FB_VERSION="10.14.1";
+try{ PUSH_ACTIVO=(localStorage.getItem("crm_push_on")==="1" && ("Notification" in window) && Notification.permission==="granted"); }catch(e){}
+function cargarScript(src){
+  return new Promise(function(ok,mal){
+    var s=document.createElement("script"); s.src=src; s.onload=ok;
+    s.onerror=function(){ mal(new Error("No se pudo cargar "+src)); };
+    document.head.appendChild(s);
+  });
+}
+var firebaseListo=null;
+function cargarFirebase(){
+  if(window.firebase && firebase.messaging) return Promise.resolve();
+  if(!firebaseListo){
+    var base="https://www.gstatic.com/firebasejs/"+FB_VERSION+"/";
+    firebaseListo=cargarScript(base+"firebase-app-compat.js").then(function(){ return cargarScript(base+"firebase-messaging-compat.js"); })
+      .catch(function(e){ firebaseListo=null; throw e; });
+  }
+  return firebaseListo;
+}
+function nombreDispositivo(){
+  var u=navigator.userAgent, so=/android/i.test(u)?"Android":/iphone/i.test(u)?"iPhone":/ipad/i.test(u)?"iPad":/windows/i.test(u)?"Windows":/mac/i.test(u)?"Mac":/linux/i.test(u)?"Linux":"Dispositivo";
+  var nav=/edg\//i.test(u)?"Edge":/firefox/i.test(u)?"Firefox":/chrome|crios/i.test(u)?"Chrome":/safari/i.test(u)?"Safari":"Navegador";
+  return (esApp?"App instalada · ":"")+so+" · "+nav;
+}
+// Obtiene el token de este dispositivo y lo registra en el Apps Script
+async function conectarPush(){
+  if(!TOKEN) return {ok:false,motivo:"Ingresa con tu PIN primero"};
+  if(!("serviceWorker" in navigator)) return {ok:false,motivo:"Este navegador no permite avisos con la app cerrada"};
+  var cfg; try{ cfg=await llamarScript({accion:"push_config"}); }catch(e){ return {ok:false,motivo:e.message==="auth"?"Sesión vencida":"Sin conexión con el script"}; }
+  if(!cfg.ok||!cfg.configurado) return {ok:false,motivo:"Falta configurar Firebase en el Apps Script (propiedades FIREBASE_… y FCM_SA_JSON)"};
+  try{ await cargarFirebase(); }catch(e){ return {ok:false,motivo:"No se pudo cargar Firebase. Revisa tu conexión"}; }
+  if(firebase.messaging.isSupported && !firebase.messaging.isSupported()) return {ok:false,motivo:"Este navegador no admite notificaciones push"};
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(cfg.web);
+    var reg=await navigator.serviceWorker.ready;
+    var tok=await firebase.messaging().getToken({vapidKey:cfg.vapid,serviceWorkerRegistration:reg});
+    if(!tok) return {ok:false,motivo:"No se pudo obtener el permiso de Firebase"};
+    var r=await llamarScript({accion:"push_registrar",fcm:tok,dispositivo:nombreDispositivo()});
+    if(!r.ok) return {ok:false,motivo:r.error||"El script no pudo registrar este dispositivo"};
+    try{ localStorage.setItem("crm_push_on","1"); localStorage.setItem("crm_push_tok",tok); }catch(e){}
+    return {ok:true};
+  }catch(e){
+    if(e.message==="auth") return {ok:false,motivo:"Sesión vencida"};
+    return {ok:false,motivo:"Firebase respondió con un error: "+(e.code||e.message||"desconocido")};
+  }
+}
+// Al iniciar sesión: si ya estaba activo, se confirma en silencio (el token puede cambiar con el tiempo)
+async function sincronizarPush(){
+  try{
+    if(!("Notification" in window)||Notification.permission!=="granted") return;
+    if(localStorage.getItem("crm_push_on")!=="1") return;
+  }catch(e){ return; }
+  var r=await conectarPush();
+  PUSH_ACTIVO=!!r.ok; PUSH_MOTIVO=r.ok?"":r.motivo;
+  actualizarBannerNotif();
 }
 async function activarNotificaciones(){
   desbloquearAudio();
   if(!("Notification" in window)){
     mostrarToast((typeof esIOS!=="undefined"&&esIOS)?"En iPhone primero instala la app en la pantalla de inicio":"Este navegador no permite notificaciones","error"); return;
   }
-  if(Notification.permission==="denied"){ mostrarToast("Las notificaciones están bloqueadas: actívalas en los ajustes del navegador","error"); return; }
-  if(Notification.permission==="granted"){ mostrarToast("Las notificaciones ya están activas","ok"); sonarAlarma(); return; }
-  var p=await Notification.requestPermission();
+  if(Notification.permission==="denied"){ mostrarToast("Las notificaciones están bloqueadas: actívalas en los ajustes del navegador","error",6000); return; }
+  if(Notification.permission==="default"){
+    var p=await Notification.requestPermission();
+    if(p!=="granted"){ actualizarBannerNotif(); mostrarToast("No se activaron las notificaciones","error"); return; }
+  }
+  mostrarToast("Conectando los avisos…");
+  var r=await conectarPush();
+  PUSH_ACTIVO=!!r.ok; PUSH_MOTIVO=r.ok?"":r.motivo;
   actualizarBannerNotif();
-  if(p==="granted"){ mostrarToast("Notificaciones activadas","ok"); sonarAlarma(); }
-  else mostrarToast("No se activaron las notificaciones","error");
+  if(r.ok){
+    sonarAlarma();
+    mostrarToast("Avisos activados. Te envío una prueba…","ok",5000);
+    setTimeout(probarPush,800);
+  } else mostrarToast(r.motivo||"No se pudieron activar los avisos","error",9000);
+}
+function abrirNotif(){
+  if(!PUSH_ACTIVO){ activarNotificaciones(); return; }
+  document.getElementById("modalNotif").classList.add("active");
+  if(canG()) gsap.fromTo("#modalNotif .modal",{scale:.85,opacity:0},{scale:1,opacity:1,duration:.35,ease:"back.out(2)",clearProps:"transform,opacity"});
+}
+function cerrarNotif(){ document.getElementById("modalNotif").classList.remove("active"); }
+async function probarPush(){
+  var b=document.getElementById("btnProbarPush"); if(b) b.disabled=true;
+  try{
+    var r=await llamarScript({accion:"push_probar"});
+    mostrarToast(r.ok?"Prueba enviada: debe llegar en unos segundos":(r.error||"No se pudo enviar la prueba"),r.ok?"ok":"error",r.ok?4000:9000);
+  }catch(e){ if(e.message!=="auth") mostrarToast("Error de conexión","error"); }
+  finally{ if(b) b.disabled=false; }
+}
+async function desactivarPush(){
+  cerrarNotif();
+  try{
+    var tok=localStorage.getItem("crm_push_tok");
+    if(window.firebase && firebase.apps.length){ try{ await firebase.messaging().deleteToken(); }catch(e){} }
+    if(tok) await llamarScript({accion:"push_baja",fcm:tok});
+    localStorage.removeItem("crm_push_on"); localStorage.removeItem("crm_push_tok");
+  }catch(e){}
+  PUSH_ACTIVO=false; PUSH_MOTIVO="";
+  actualizarBannerNotif();
+  mostrarToast("Avisos desactivados en este dispositivo","ok");
+}
+// Tocar la notificación con la app abierta lleva a Tareas
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",function(e){
+    if(e.data && e.data.tipo==="ir" && TOKEN) irA(e.data.p||"tareas");
+  });
+}
+// Si la app se abrió desde una notificación (?ir=tareas), al entrar va directo a Tareas
+var IR_INICIAL=null;
+try{ IR_INICIAL=new URLSearchParams(location.search).get("ir"); }catch(e){}
+function irInicialSiHay(){
+  if(IR_INICIAL==="tareas"){
+    IR_INICIAL=null;
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    setTimeout(function(){ irA("tareas"); },300);
+  }
 }
 
 // ══════ SELECTOR DE HORA PROPIO (no depende del reloj del sistema, que se desbordaba en celular) ══════
 var hp={h:9,m:0,pm:false};
 function fijarFechaHora(d){
   document.getElementById("tFecha").value=fechaISO(d);
-  var H=d.getHours(), m=Math.round(d.getMinutes()/5)*5;
-  if(m===60) m=55;
-  hp.pm=H>=12; hp.h=(H%12)||12; hp.m=m;
+  var H=d.getHours();
+  hp.pm=H>=12; hp.h=(H%12)||12; hp.m=d.getMinutes();
   hpPintar();
 }
 function hpCambiar(campo,delta){
   if(campo==="h") hp.h=((hp.h-1+delta+12)%12)+1;
-  else hp.m=(hp.m+delta*5+60)%60;
+  else hp.m=(hp.m+delta+60)%60;
   hpPintar();
-  if(navigator.vibrate) navigator.vibrate(8);
 }
 function hpAmPm(pm){ hp.pm=pm; hpPintar(); }
+// Lista para tocar: horas 1–12 o minutos 00–59
+function hpGrid(campo){
+  var g=document.getElementById("hpGrid");
+  var abierto=g.classList.contains("show")&&g.getAttribute("data-campo")===campo;
+  document.getElementById("hpH").classList.remove("abierto"); document.getElementById("hpM").classList.remove("abierto");
+  if(abierto){ g.classList.remove("show"); g.setAttribute("data-campo",""); return; }
+  var vals=[], actual=campo==="h"?hp.h:hp.m;
+  if(campo==="h") for(var i=1;i<=12;i++) vals.push(i); else for(var j=0;j<60;j++) vals.push(j);
+  g.innerHTML=vals.map(function(v){ return '<button type="button" class="hp-op'+(v===actual?' activo':'')+'" onclick="hpElegir(\''+campo+'\','+v+')">'+String(v).padStart(2,"0")+'</button>'; }).join("");
+  g.setAttribute("data-campo",campo); g.classList.add("show");
+  document.getElementById(campo==="h"?"hpH":"hpM").classList.add("abierto");
+  var sel=g.querySelector(".activo"); if(sel) g.scrollTop=Math.max(0,sel.offsetTop-g.clientHeight/2+sel.offsetHeight/2);
+  try{ g.scrollIntoView({block:"nearest",behavior:REDUCED?"auto":"smooth"}); }catch(e){ g.scrollIntoView(false); }
+}
+function hpElegir(campo,v){
+  if(campo==="h") hp.h=v; else hp.m=v;
+  var g=document.getElementById("hpGrid"); g.classList.remove("show"); g.setAttribute("data-campo","");
+  document.getElementById("hpH").classList.remove("abierto"); document.getElementById("hpM").classList.remove("abierto");
+  hpPintar();
+}
+// Flechas: un toque = 1; mantener presionado = avanza solo, cada vez más rápido
+(function(){
+  var timer=null, vueltas=0;
+  function parar(){ if(timer){ clearTimeout(timer); timer=null; } }
+  function paso(b){ hpCambiar(b.getAttribute("data-campo"),parseInt(b.getAttribute("data-d"),10)); }
+  document.addEventListener("pointerdown",function(e){
+    var b=e.target.closest(".hp-btn"); if(!b) return;
+    e.preventDefault(); parar(); vueltas=0; paso(b);
+    if(navigator.vibrate) navigator.vibrate(8);
+    (function repetir(espera){ timer=setTimeout(function(){ vueltas++; paso(b); repetir(vueltas>12?45:(vueltas>4?80:130)); },espera); })(420);
+  });
+  ["pointerup","pointercancel","blur"].forEach(function(ev){ document.addEventListener(ev,parar,true); });
+  // Solo se detiene si el dedo o el mouse sale de la flecha (no al pasar sobre el ícono de adentro)
+  document.addEventListener("pointerleave",function(e){ if(e.target.classList && e.target.classList.contains("hp-btn")) parar(); },true);
+  // Teclado (Enter / espacio sobre la flecha)
+  document.addEventListener("click",function(e){ var b=e.target.closest(".hp-btn"); if(b && e.detail===0) paso(b); });
+})();
 function hpPintar(){
   var H=(hp.h%12)+(hp.pm?12:0);
   document.getElementById("tHora").value=String(H).padStart(2,"0")+":"+String(hp.m).padStart(2,"0");
