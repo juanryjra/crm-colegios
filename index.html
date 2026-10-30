@@ -2217,7 +2217,8 @@ async function conectarPush(){
   if(!TOKEN) return {ok:false,motivo:"Ingresa con tu PIN primero"};
   if(!("serviceWorker" in navigator)) return {ok:false,motivo:"Este navegador no permite avisos con la app cerrada"};
   var cfg; try{ cfg=await llamarScript({accion:"push_config"}); }catch(e){ return {ok:false,motivo:e.message==="auth"?"Sesión vencida":"Sin conexión con el script"}; }
-  if(!cfg.ok||!cfg.configurado) return {ok:false,motivo:"Falta configurar Firebase en el Apps Script (propiedades FIREBASE_… y FCM_SA_JSON)"};
+  if(!cfg.ok) return {ok:false,motivo:(cfg.error==="Acción desconocida")?"El Apps Script publicado está desactualizado: publícalo de nuevo (Implementar → Gestionar implementaciones → ✏ Editar → Nueva versión)":(cfg.error||"El Apps Script no respondió bien")};
+  if(!cfg.configurado) return {ok:false,motivo:"Falta configurar Firebase en el Apps Script (propiedades FIREBASE_… y FCM_SA_JSON)"};
   try{ await cargarFirebase(); }catch(e){ return {ok:false,motivo:"No se pudo cargar Firebase. Revisa tu conexión"}; }
   if(firebase.messaging.isSupported && !firebase.messaging.isSupported()) return {ok:false,motivo:"Este navegador no admite notificaciones push"};
   try{
