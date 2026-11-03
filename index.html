@@ -595,6 +595,18 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .push-nota i{font-size:1.05rem;flex-shrink:0;margin-top:1px;}
 .push-nota.ok{background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32;}
 
+/* ══════ FIRMA DE COMPONENTES (lista que se guarda sola) ══════ */
+.campo-firma{background:var(--gris);border:1px solid var(--azul-suave);border-radius:12px;padding:10px 12px;}
+.firma-select{width:100%;padding:11px 40px 11px 12px;border:2px solid;border-radius:10px;font-family:var(--font-display);font-weight:700;font-size:16px;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-repeat:no-repeat;background-position:right 12px center;background-size:18px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23455A64' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");transition:background-color .2s,border-color .2s,color .2s;}
+.firma-select[data-e="nofirmado"]{background-color:#FFF8E1;border-color:#FFCA28;color:#8D6E00;}
+.firma-select[data-e="firmado"]{background-color:#E8F5E9;border-color:#43A047;color:#1B5E20;}
+.firma-select[data-e="migracion"]{background-color:#E3F2FD;border-color:#1E88E5;color:#0D47A1;}
+.firma-select[data-e="nocontinua"]{background-color:#FFEBEE;border-color:#E53935;color:#B71C1C;}
+.firma-select:focus-visible{box-shadow:0 0 0 3px rgba(21,101,192,.2);}
+.firma-select:disabled{opacity:.6;cursor:wait;}
+.firma-select option{color:#1a2340;background:#fff;}
+.firma-ayuda{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#888;margin-top:6px;}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -984,7 +996,7 @@ const CONFIG = {
 const SHEETS_URL = "https://docs.google.com/spreadsheets/d/" + CONFIG.sheetId;
 const GRADOS = ["Pre kind","Kinder","Transición","1","2","3","4","5","6","7","8","9","10","11"];
 
-const C = {id:0,crm:1,nombre:2,ciudad:3,tipo:4,regional:5,comercial:6,celCom:7,correoCom:8,usuAdmin:9,passAdmin:10,usuTM:11,passTM:12,contenidos:13,estudiantes:14,pinActivo:15,docentes:16,asesorIng:17,correoIng:18,telIng:19,asesorRob:20,correoRob:21,telRob:22,asesorDH:23,correoDH:24,telDH:25,canal:26,linea:27};
+const C = {id:0,crm:1,nombre:2,ciudad:3,tipo:4,regional:5,comercial:6,celCom:7,correoCom:8,usuAdmin:9,passAdmin:10,usuTM:11,passTM:12,contenidos:13,estudiantes:14,pinActivo:15,docentes:16,asesorIng:17,correoIng:18,telIng:19,asesorRob:20,correoRob:21,telRob:22,asesorDH:23,correoDH:24,telDH:25,canal:26,linea:27,firma:28};
 
 let datos=[], contactos=[], senso=[];
 let ANIO=null, ANIOS=[], tareas=[], filtroTareas="pendientes";
@@ -1352,6 +1364,7 @@ function renderFicha(r, idx) {
   '<div class="ficha-body">'+
     '<div class="sec-title">'+ic("identification-card")+' Identificación</div>'+
     '<div class="fields-grid">'+
+      campoFirma(r)+
       fCopy("ID","f_id",vraw(C.id))+
       fCopy("CRM","f_crm",vraw(C.crm))+
       '<div class="field full"><label>Nombre del Colegio</label>'+
@@ -1472,6 +1485,7 @@ async function confirmarGuardar(){
   var filaSheet=datos[colegioActual]._fila;
   var fila=[r[C.id],r[C.crm],g("f_nombre"),g("f_ciudad"),g("f_tipo"),g("f_regional"),g("f_com"),g("f_celCom"),g("f_correoCom"),r[C.usuAdmin],r[C.passAdmin],r[C.usuTM],r[C.passTM],g("f_cont"),g("f_est"),g("f_pin"),g("f_doc"),g("f_aIng"),g("f_cIng"),g("f_tIng"),g("f_aRob"),g("f_cRob"),g("f_tRob"),g("f_aDH"),g("f_cDH"),g("f_tDH"),g("f_canal"),g("f_linea")];
   fila._fila=filaSheet;
+  fila[C.firma]=r[C.firma];   // la firma se guarda aparte; aquí solo se conserva
   datos[colegioActual]=fila;
   actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
   mostrarToast("Guardando...");
@@ -1732,6 +1746,7 @@ if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
 //  AÑOS: cada pestaña con nombre de año (2026, 2027…) es una base de datos
 // ══════════════════════════════════════════════════════════
 function aplicarDatos(res){
+  FIRMA=res.firma||null;
   datos=[];
   (res.datos||[]).forEach(function(r,i){ if(r[2]){ r._fila=i; datos.push(r); } });
   contactos=res.contactos||[];
@@ -2403,7 +2418,7 @@ if(history.state && history.state.p){ try{ history.replaceState(null,""); }catch
 function cerrarModalesAbiertos(){
   var hubo=false;
   if(document.getElementById("modalConfirmar").classList.contains("active")){ resolverConfirmar(false); hubo=true; }
-  ["modalTarea","modalOverlay","modalInstalar"].forEach(function(id){
+  ["modalTarea","modalOverlay","modalInstalar","modalNotif"].forEach(function(id){
     var m=document.getElementById(id); if(m && m.classList.contains("active")){ m.classList.remove("active"); hubo=true; }
   });
   return hubo;
@@ -2430,6 +2445,38 @@ window.addEventListener("popstate",function(e){
   if(!document.getElementById("screen"+(p==="crm"?"Crm":p.charAt(0).toUpperCase()+p.slice(1)))) p="menu";
   if(p!==pantallaActual()) _irAPantalla(p);   // si solo se cerró una ventana, no se recarga la pantalla
 });
+
+// ══════ FIRMA DE COMPONENTES ══════
+// La columna se detecta en la hoja por su nombre; si no existe, el campo no aparece
+var FIRMA=null, OPC_FIRMA=["No firmado","Firmado","Migración","No Continua"];
+function sinTildes(x){ return String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase(); }
+function opcionesFirma(){ return (FIRMA&&FIRMA.opciones&&FIRMA.opciones.length)?FIRMA.opciones:OPC_FIRMA; }
+// Vacío o desconocido = "No firmado" (la primera opción)
+function normFirma(v){ var o=opcionesFirma(), k=sinTildes(v); for(var i=0;i<o.length;i++) if(sinTildes(o[i])===k) return o[i]; return o[0]; }
+function claseFirma(v){ return ({"no firmado":"nofirmado","firmado":"firmado","migracion":"migracion","no continua":"nocontinua"})[sinTildes(v)]||"nofirmado"; }
+function campoFirma(r){
+  if(!FIRMA) return "";
+  var val=normFirma(r[C.firma]);
+  return '<div class="field full campo-firma"><label for="f_firma">'+escHtml(FIRMA.titulo||"Firma de componentes")+'</label>'+
+    '<select id="f_firma" class="firma-select" data-e="'+claseFirma(val)+'" onchange="guardarFirma(this)">'+
+    opcionesFirma().map(function(x){ return '<option value="'+escHtml(x)+'"'+(x===val?' selected':'')+'>'+escHtml(x)+'</option>'; }).join("")+
+    '</select><div class="firma-ayuda">'+ic("lightning")+' Se guarda al elegir, sin activar edición</div></div>';
+}
+async function guardarFirma(sel){
+  if(colegioActual===null||!datos[colegioActual]) return;
+  var r=datos[colegioActual], antes=normFirma(r[C.firma]), valor=sel.value;
+  if(valor===antes) return;
+  sel.setAttribute("data-e",claseFirma(valor)); sel.disabled=true;
+  try{
+    var res=await llamarScript({accion:"firma",fila:r._fila,id:r[C.id]||"",nombre:r[C.nombre]||"",valor:valor});
+    if(!res.ok) throw new Error(res.error||"No se pudo guardar");
+    r[C.firma]=valor;
+    mostrarToast((FIRMA&&FIRMA.titulo?FIRMA.titulo:"Firma")+": "+valor,"ok");
+  }catch(e){
+    sel.value=antes; sel.setAttribute("data-e",claseFirma(antes));     // si falla, vuelve a lo que estaba
+    if(e.message!=="auth") mostrarToast(e.message==="Failed to fetch"?"Sin conexión: no se guardó la firma":(e.message||"No se guardó la firma"),"error",8000);
+  }finally{ sel.disabled=false; }
+}
 </script>
 </body>
 </html>
