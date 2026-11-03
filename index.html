@@ -607,6 +607,11 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .firma-select option{color:#1a2340;background:#fff;}
 .firma-ayuda{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#888;margin-top:6px;}
 
+/* Firma en la lista de colegios */
+.lista-firma{margin:-2px 0 12px;}
+.lista-firma .lista-cred-label{margin-bottom:5px;}
+.firma-select.firma-mini{width:auto;min-width:190px;max-width:100%;padding:8px 38px 8px 12px;border-radius:999px;font-size:16px;background-position:right 10px center;background-size:16px;}
+
 /* ACCESIBILIDAD */
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
@@ -1364,7 +1369,7 @@ function renderFicha(r, idx) {
   '<div class="ficha-body">'+
     '<div class="sec-title">'+ic("identification-card")+' Identificación</div>'+
     '<div class="fields-grid">'+
-      campoFirma(r)+
+      campoFirma(r,idx)+
       fCopy("ID","f_id",vraw(C.id))+
       fCopy("CRM","f_crm",vraw(C.crm))+
       '<div class="field full"><label>Nombre del Colegio</label>'+
@@ -1534,6 +1539,7 @@ function renderLista() {
       '<div class="lista-info">'+
         '<div class="lista-ids">ID: '+escHtml(v(C.id))+' · CRM: '+escHtml(v(C.crm))+'</div>'+
         '<div class="lista-nombre">'+escHtml(v(C.nombre))+'</div>'+
+        selectFirmaLista(r,idx)+
         '<div class="lista-creds">'+credsHTML+'</div>'+
       '</div>'+
     '</div>';
@@ -2454,26 +2460,41 @@ function opcionesFirma(){ return (FIRMA&&FIRMA.opciones&&FIRMA.opciones.length)?
 // Vacío o desconocido = "No firmado" (la primera opción)
 function normFirma(v){ var o=opcionesFirma(), k=sinTildes(v); for(var i=0;i<o.length;i++) if(sinTildes(o[i])===k) return o[i]; return o[0]; }
 function claseFirma(v){ return ({"no firmado":"nofirmado","firmado":"firmado","migracion":"migracion","no continua":"nocontinua"})[sinTildes(v)]||"nofirmado"; }
-function campoFirma(r){
+function opcionesFirmaHtml(val){
+  return opcionesFirma().map(function(x){ return '<option value="'+escHtml(x)+'"'+(x===val?' selected':'')+'>'+escHtml(x)+'</option>'; }).join("");
+}
+function campoFirma(r,idx){
   if(!FIRMA) return "";
   var val=normFirma(r[C.firma]);
   return '<div class="field full campo-firma"><label for="f_firma">'+escHtml(FIRMA.titulo||"Firma de componentes")+'</label>'+
-    '<select id="f_firma" class="firma-select" data-e="'+claseFirma(val)+'" onchange="guardarFirma(this)">'+
-    opcionesFirma().map(function(x){ return '<option value="'+escHtml(x)+'"'+(x===val?' selected':'')+'>'+escHtml(x)+'</option>'; }).join("")+
+    '<select id="f_firma" class="firma-select" data-idx="'+idx+'" data-e="'+claseFirma(val)+'" onchange="guardarFirma(this,'+idx+')">'+opcionesFirmaHtml(val)+
     '</select><div class="firma-ayuda">'+ic("lightning")+' Se guarda al elegir, sin activar edición</div></div>';
 }
-async function guardarFirma(sel){
-  if(colegioActual===null||!datos[colegioActual]) return;
-  var r=datos[colegioActual], antes=normFirma(r[C.firma]), valor=sel.value;
+// En la lista de colegios: debajo del nombre, se guarda al elegir
+function selectFirmaLista(r,idx){
+  if(!FIRMA) return "";
+  var val=normFirma(r[C.firma]);
+  return '<div class="lista-firma"><div class="lista-cred-label">'+ic("signature")+' '+escHtml(FIRMA.titulo||"Firma de componentes")+'</div>'+
+    '<select class="firma-select firma-mini" data-idx="'+idx+'" data-e="'+claseFirma(val)+'" aria-label="'+escHtml((FIRMA.titulo||"Firma")+" · "+(r[C.nombre]||""))+'" onchange="guardarFirma(this,'+idx+')">'+opcionesFirmaHtml(val)+'</select></div>';
+}
+// Mantiene iguales todas las listas del mismo colegio (ficha y lista de colegios)
+function sincronizarFirmaUI(idx,valor){
+  document.querySelectorAll('.firma-select[data-idx="'+idx+'"]').forEach(function(s){ s.value=valor; s.setAttribute("data-e",claseFirma(valor)); });
+}
+async function guardarFirma(sel,idx){
+  if(idx===undefined||idx===null) idx=colegioActual;
+  if(idx===null||!datos[idx]) return;
+  var r=datos[idx], antes=normFirma(r[C.firma]), valor=sel.value;
   if(valor===antes) return;
   sel.setAttribute("data-e",claseFirma(valor)); sel.disabled=true;
   try{
     var res=await llamarScript({accion:"firma",fila:r._fila,id:r[C.id]||"",nombre:r[C.nombre]||"",valor:valor});
     if(!res.ok) throw new Error(res.error||"No se pudo guardar");
     r[C.firma]=valor;
-    mostrarToast((FIRMA&&FIRMA.titulo?FIRMA.titulo:"Firma")+": "+valor,"ok");
+    sincronizarFirmaUI(idx,valor);
+    mostrarToast(valor+" · "+(r[C.nombre]||""),"ok");
   }catch(e){
-    sel.value=antes; sel.setAttribute("data-e",claseFirma(antes));     // si falla, vuelve a lo que estaba
+    sincronizarFirmaUI(idx,antes);     // si falla, vuelve a lo que estaba
     if(e.message!=="auth") mostrarToast(e.message==="Failed to fetch"?"Sin conexión: no se guardó la firma":(e.message||"No se guardó la firma"),"error",8000);
   }finally{ sel.disabled=false; }
 }
