@@ -612,8 +612,52 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .lista-firma .lista-cred-label{margin-bottom:5px;}
 .firma-select.firma-mini{width:auto;min-width:190px;max-width:100%;padding:8px 38px 8px 12px;border-radius:999px;font-size:16px;background-position:right 10px center;background-size:16px;}
 
+/* ══════ NUEVO CONTACTO (aparece al activar edición) ══════ */
+#fichaCard:not(.modo-edicion) .solo-edicion{display:none;}
+.btn-contacto{margin-top:2px;}
+.form-colegio{display:flex;align-items:center;gap:8px;background:var(--azul-fondo);color:var(--azul2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-weight:700;font-size:.86rem;overflow-wrap:anywhere;}
+.form-colegio i{font-size:1.2rem;flex-shrink:0;}
+.form-row label .opcional{font-weight:600;color:#b0b0b0;text-transform:none;letter-spacing:0;}
+.form-row input.invalido{border-color:#E53935;box-shadow:0 0 0 3px rgba(229,57,53,.12);}
+@media (max-width:600px){
+  #modalContacto{align-items:flex-end;}
+  #modalContacto .modal.modal-form{width:100%;max-width:100%;border-radius:22px 22px 0 0;max-height:94vh;max-height:94dvh;}
+}
+@media (max-width:420px){ #modalContacto .form-2col{grid-template-columns:1fr;gap:0;} }
+/* El texto del botón principal no se parte en dos renglones en celular */
+.modal-form>.modal-btns .btn{white-space:nowrap;padding-left:12px;padding-right:12px;}
+.modal-form>.modal-btns .btn-limpiar{flex:0 1 auto;padding-left:18px;padding-right:18px;}
+
+/* ══════ COMPATIBILIDAD CELULAR / TABLET / PC ══════ */
+/* dvh descuenta la barra del navegador del celular (con vh el contenido quedaba tapado) */
+body,.menu-screen{min-height:100vh;min-height:100dvh;}
+/* Ninguna ventana se sale de la pantalla (celular acostado): si no cabe, se desplaza por dentro */
+.modal{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+/* Nombres y correos largos no ensanchan la tarjeta */
+.ficha-header>div:first-child,.contact-header>div:last-child{min-width:0;}
+.ficha-nombre,.contact-name,.contact-cargo,.lista-nombre{overflow-wrap:anywhere;}
+.main-grid>*{min-width:0;}
+/* Tablet acostada (801–1024 px): columna derecha más angosta para dar aire a la ficha */
+@media (min-width:801px) and (max-width:1024px){ .main-grid{grid-template-columns:minmax(0,1fr) 260px;gap:16px;} }
+/* En pantallas táctiles el "hover" se queda pegado tras tocar: el botón quedaba pintado.
+   Aquí se anula y el color de respuesta pasa a :active (mientras el dedo está encima). */
+@media (hover:none){
+  .pin-key:hover{color:var(--azul2);} .pin-key.del:hover{color:#E65100;}
+  .pin-key:hover::before{transform:translateY(101%);}
+  .pin-key:active,.pin-key.del:active{color:#fff;} .pin-key:active::before{transform:translateY(0);}
+  .icon-btn.copy:hover{background:var(--azul-fondo);color:var(--azul);transform:none;}
+  .icon-btn.copy:active{background:var(--azul);color:#fff;}
+  .lista-go:hover{background:var(--azul-fondo);color:var(--azul);transform:none;}
+  .lista-go:active{background:var(--azul);color:#fff;}
+  .tarea-borrar:hover{background:#FFF3E0;color:#E65100;}
+  .tarea-check:hover{border-color:var(--azul-claro);color:transparent;}
+  .dropdown-item:hover{background:transparent;} .dropdown-item:hover>span{transform:none;}
+  .dropdown-item:active{background:var(--azul-fondo);}
+  .anio-btn:hover{transform:none;} .menu-card:hover::after{transform:scaleX(0);}
+}
+
 /* ACCESIBILIDAD */
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--azul-claro);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
 }
@@ -755,6 +799,30 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
       <button type="button" class="btn btn-guardar bubbly" id="btnGuardarTarea" onclick="guardarTarea()"><i class="ph-bold ph-check-circle"></i> Guardar tarea</button>
     </div>
   </div>
+</div>
+
+<!-- NUEVO CONTACTO (se abre desde la ficha, con la edición activa) -->
+<div class="modal-overlay" id="modalContacto" onclick="if(event.target===this)cerrarNuevoContacto()">
+  <form class="modal modal-form" role="dialog" aria-labelledby="cTitulo" onsubmit="event.preventDefault();guardarContacto()" novalidate>
+    <div class="form-head">
+      <span class="form-head-icon"><i class="ph-duotone ph-user-plus"></i></span>
+      <h3 id="cTitulo">Nuevo contacto</h3>
+      <button type="button" class="form-cerrar" onclick="cerrarNuevoContacto()" aria-label="Cerrar"><i class="ph-bold ph-x"></i></button>
+    </div>
+    <div class="form-body">
+      <div class="form-colegio"><i class="ph-duotone ph-buildings"></i><span id="cColegio"></span></div>
+      <div class="form-row"><label for="cNombre">Nombre completo</label><input type="text" id="cNombre" maxlength="150" autocomplete="off" autocapitalize="words" enterkeyhint="next" placeholder="Ej.: María Pérez"></div>
+      <div class="form-row"><label for="cCargo">Cargo <span class="opcional">(opcional)</span></label><input type="text" id="cCargo" maxlength="150" autocomplete="off" autocapitalize="words" list="cCargos" enterkeyhint="next" placeholder="Ej.: Coordinador académico"><datalist id="cCargos"></datalist></div>
+      <div class="form-2col">
+        <div class="form-row"><label for="cCorreo">Correo <span class="opcional">(opcional)</span></label><input type="email" id="cCorreo" maxlength="200" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" placeholder="correo@colegio.edu.co"></div>
+        <div class="form-row"><label for="cTelefono">Teléfono <span class="opcional">(opcional)</span></label><input type="tel" id="cTelefono" maxlength="60" inputmode="tel" autocomplete="off" enterkeyhint="done" placeholder="300 000 0000"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button type="button" class="btn btn-limpiar" onclick="cerrarNuevoContacto()">Cancelar</button>
+      <button type="submit" class="btn btn-guardar bubbly" id="btnGuardarContacto"><i class="ph-bold ph-check-circle"></i> Guardar contacto</button>
+    </div>
+  </form>
 </div>
 
 <!-- NOTIFICACIONES (estado y prueba) -->
@@ -1347,21 +1415,6 @@ function habilitarCampos(on) {
 function renderFicha(r, idx) {
   var vraw=function(i){return (r[i]||"").toString();};
 
-  var nom=vraw(C.nombre).trim().toUpperCase();
-  var cols=contactos.filter(function(c){return (c[0]||"").trim().toUpperCase()===nom;});
-  var contactosHTML=cols.length ? cols.map(function(c){
-    var ini=escHtml((c[2]||"?")[0].toUpperCase());
-    return '<div class="contact-card">'+
-      '<div class="contact-header">'+
-        '<div class="contact-avatar">'+ini+'</div>'+
-        '<div><div class="contact-name">'+escHtml(c[2]||"–")+'</div><div class="contact-cargo">'+escHtml(c[1]||"–")+'</div></div>'+
-      '</div>'+
-      '<div class="contact-fields">'+
-        (c[3]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("envelope-simple")+' Correo</div><div class="contact-field-val">'+escHtml(c[3])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[3])+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
-        (c[4]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("phone")+' Teléfono</div><div class="contact-field-val">'+escHtml(c[4])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[4])+'\')" title="Copiar">'+ic("copy")+'</button></div>':'')+
-      '</div></div>';
-  }).join("") : '<div class="no-contactos">Sin contactos registrados</div>';
-
   var html='<div class="ficha-header">'+
     '<div><div class="ficha-nombre">'+escHtml(vraw(C.nombre))+'</div><div class="ficha-sub">'+escHtml(vraw(C.ciudad))+' · ID: '+escHtml(vraw(C.id))+'</div></div>'+
     '<div class="ficha-tag">'+escHtml(vraw(C.tipo)||"–")+'</div>'+
@@ -1387,7 +1440,7 @@ function renderFicha(r, idx) {
     '<div class="sec-title">'+ic("check-square-offset")+' Tareas del colegio</div>'+
     '<div class="ficha-tareas" id="fichaTareas"></div>'+
     '<div class="sec-title">'+ic("users-three")+' Contactos del Colegio</div>'+
-    contactosHTML+
+    '<div id="fichaContactos"></div>'+
     '<div class="sec-title">'+ic("books")+' Contenidos</div>'+
     '<div class="field"><label>Contenidos</label><textarea id="f_cont" oninput="autoResize(this)">'+escHtml(vraw(C.contenidos))+'</textarea></div>'+
     '<div class="sec-title">'+ic("briefcase")+' Datos Comercial</div>'+
@@ -1404,6 +1457,7 @@ function renderFicha(r, idx) {
   var card=document.getElementById("fichaCard");
   card.innerHTML=html;
   renderTareasFicha();
+  renderContactosFicha();
   habilitarCampos(modoEdicion);
   // OPT: ajusta solo el textarea de la ficha, en el siguiente cuadro
   requestAnimationFrame(function(){ var t=document.getElementById("f_cont"); if(t) autoResize(t); });
@@ -1477,34 +1531,124 @@ function abrirModal(){
   if(colegioActual===null){mostrarToast("Selecciona un colegio","error");return;}
   document.getElementById("modalOverlay").classList.add("active");
   if (canG()) {
-    gsap.fromTo(".modal",{scale:.8,opacity:0,y:24},{scale:1,opacity:1,y:0,duration:.45,ease:"back.out(2)"});
-    gsap.fromTo(".modal-overlay",{opacity:0},{opacity:1,duration:.25});
-    gsap.fromTo(".modal-icon",{rotation:-12,scale:.6},{rotation:0,scale:1,duration:.8,ease:"elastic.out(1,.5)"});
+    // Solo esta ventana (antes animaba todas las ventanas de la página a la vez)
+    gsap.fromTo("#modalOverlay .modal",{scale:.8,opacity:0,y:24},{scale:1,opacity:1,y:0,duration:.45,ease:"back.out(2)",clearProps:"transform,opacity"});
+    gsap.fromTo("#modalOverlay",{opacity:0},{opacity:1,duration:.25,clearProps:"opacity"});
+    gsap.fromTo("#modalOverlay .modal-icon",{rotation:-12,scale:.6},{rotation:0,scale:1,duration:.8,ease:"elastic.out(1,.5)",clearProps:"transform"});
   }
 }
 function closeModal(){document.getElementById("modalOverlay").classList.remove("active");}
 async function confirmarGuardar(){
   closeModal();
   var g=function(id){var el=document.getElementById(id);return el?el.value:"";};
-  var r=datos[colegioActual];
-  var filaSheet=datos[colegioActual]._fila;
+  var idx=colegioActual, r=datos[idx];
+  var filaSheet=r._fila;
+  if(!g("f_nombre").trim()){ mostrarToast("El nombre del colegio no puede quedar vacío","error"); return; }
   var fila=[r[C.id],r[C.crm],g("f_nombre"),g("f_ciudad"),g("f_tipo"),g("f_regional"),g("f_com"),g("f_celCom"),g("f_correoCom"),r[C.usuAdmin],r[C.passAdmin],r[C.usuTM],r[C.passTM],g("f_cont"),g("f_est"),g("f_pin"),g("f_doc"),g("f_aIng"),g("f_cIng"),g("f_tIng"),g("f_aRob"),g("f_cRob"),g("f_tRob"),g("f_aDH"),g("f_cDH"),g("f_tDH"),g("f_canal"),g("f_linea")];
   fila._fila=filaSheet;
   fila[C.firma]=r[C.firma];   // la firma se guarda aparte; aquí solo se conserva
-  datos[colegioActual]=fila;
-  actualizarChart(fila); renderCredenciales(fila); toggleEdicion();
+  toggleEdicion();
   mostrarToast("Guardando...");
   try {
     var res=await llamarScript({accion:"datos",fila:filaSheet,valores:fila});
-    if(res.success && ANIO && res.hoja && res.hoja!==ANIO){
+    if(!res.success) throw new Error(res.error||"Error al guardar");
+    // Solo cuando Google confirma se da por bueno el cambio (antes quedaba en pantalla aunque fallara)
+    datos[idx]=fila;
+    if(colegioActual===idx){
+      actualizarChart(fila); renderCredenciales(fila);
+      var card=document.getElementById("fichaCard"), n=card.querySelector(".ficha-nombre"), sub=card.querySelector(".ficha-sub"), tag=card.querySelector(".ficha-tag");
+      if(n) n.textContent=fila[C.nombre];
+      if(sub) sub.textContent=fila[C.ciudad]+" · ID: "+fila[C.id];
+      if(tag) tag.textContent=fila[C.tipo]||"–";
+      document.getElementById("searchInput").value=fila[C.nombre];
+      renderContactosFicha();
+    }
+    if(ANIO && res.hoja && res.hoja!==ANIO){
       mostrarToast("Atención: se guardó en "+res.hoja+" y no en "+ANIO+". Revisa el Apps Script","error");
       return;
     }
-    mostrarToast(res.success?"Guardado en la pestaña "+(res.hoja||ANIO||"Datos"):(res.error||"Error al guardar"),res.success?"ok":"error");
+    mostrarToast("Guardado en la pestaña "+(res.hoja||ANIO||"Datos"),"ok");
   } catch(e){
-    if(e.message==="auth") mostrarToast("Sesión expirada: ingresa el PIN y vuelve a guardar","error");
-    else mostrarToast("Error de conexión","error");
+    // No se guardó: lo escrito sigue en pantalla y la edición se reabre para reintentar
+    if(colegioActual===idx && !modoEdicion) toggleEdicion();
+    if(e.message==="auth") mostrarToast("Sesión expirada: ingresa el PIN y vuelve a guardar","error",8000);
+    else mostrarToast(e.message==="Failed to fetch"?"Sin conexión: no se guardó. Tus cambios siguen en pantalla, vuelve a tocar Guardar":(e.message||"Error al guardar"),"error",8000);
   }
+}
+
+// ══════ CONTACTOS DEL COLEGIO ══════
+// Hoja "contactos": A Colegio · B Cargo · C Nombre · D Correo · E Teléfono
+function contactosDe(r){
+  var nom=String(r[C.nombre]||"").trim().toUpperCase();
+  return contactos.filter(function(c){return (c[0]||"").trim().toUpperCase()===nom;});
+}
+function htmlContacto(c){
+  var ini=escHtml(String(c[2]||"?").trim().charAt(0).toUpperCase()||"?");
+  return '<div class="contact-card">'+
+    '<div class="contact-header">'+
+      '<div class="contact-avatar">'+ini+'</div>'+
+      '<div><div class="contact-name">'+escHtml(c[2]||"–")+'</div><div class="contact-cargo">'+escHtml(c[1]||"–")+'</div></div>'+
+    '</div>'+
+    '<div class="contact-fields">'+
+      (c[3]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("envelope-simple")+' Correo</div><div class="contact-field-val">'+escHtml(c[3])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[3])+'\')" title="Copiar correo" aria-label="Copiar correo">'+ic("copy")+'</button></div>':'')+
+      (c[4]?'<div class="contact-field"><div class="contact-field-info"><div class="contact-field-label">'+ic("phone")+' Teléfono</div><div class="contact-field-val">'+escHtml(c[4])+'</div></div><button class="icon-btn copy" onclick="copiarTexto(\''+jsArg(c[4])+'\')" title="Copiar teléfono" aria-label="Copiar teléfono">'+ic("copy")+'</button></div>':'')+
+    '</div></div>';
+}
+// Se redibuja solo esta sección, así no se pierde lo que estés escribiendo en el resto de la ficha
+function renderContactosFicha(){
+  var el=document.getElementById("fichaContactos"); if(!el||colegioActual===null) return;
+  var r=datos[colegioActual]; if(!r) return;
+  var cols=contactosDe(r);
+  el.innerHTML=(cols.length?cols.map(htmlContacto).join(""):'<div class="no-contactos">Sin contactos registrados</div>')+
+    '<button type="button" class="btn-mini btn-contacto solo-edicion" onclick="abrirNuevoContacto()">'+ic("user-plus","bold")+' Agregar contacto</button>';
+}
+function abrirNuevoContacto(){
+  if(!TOKEN){ mostrarToast("Ingresa con tu PIN primero","error"); return; }
+  if(colegioActual===null||!datos[colegioActual]){ mostrarToast("Selecciona un colegio","error"); return; }
+  if(!modoEdicion){ mostrarToast("Activa edición primero","error"); return; }
+  document.getElementById("cColegio").textContent=datos[colegioActual][C.nombre];
+  ["cNombre","cCargo","cCorreo","cTelefono"].forEach(function(id){ var e=document.getElementById(id); e.value=""; e.classList.remove("invalido"); });
+  // Sugiere los cargos que ya existen en la hoja, para escribirlos siempre igual
+  var vistos={}, cargos=[];
+  contactos.forEach(function(c){ var k=String(c[1]||"").trim(); if(k && !vistos[k.toUpperCase()]){ vistos[k.toUpperCase()]=1; cargos.push(k); } });
+  document.getElementById("cCargos").innerHTML=cargos.sort().slice(0,60).map(function(k){ return '<option value="'+escHtml(k)+'">'; }).join("");
+  document.getElementById("modalContacto").classList.add("active");
+  if(canG()) gsap.fromTo("#modalContacto .modal",{y:(innerWidth<=600?160:30),opacity:0,scale:(innerWidth<=600?1:.96)},{y:0,opacity:1,scale:1,duration:.4,ease:"back.out(1.6)",clearProps:"transform,opacity"});
+  if(FINE) setTimeout(function(){ document.getElementById("cNombre").focus(); },250);
+  try{ history.pushState({p:pantallaActual(),modal:true},""); }catch(e){}   // "atrás" cierra el formulario
+}
+function cerrarNuevoContacto(){
+  var m=document.getElementById("modalContacto"), abierto=m.classList.contains("active");
+  m.classList.remove("active");
+  if(abierto && history.state && history.state.modal){ try{ history.back(); }catch(e){} }
+}
+var guardandoContacto=false;
+async function guardarContacto(){
+  if(guardandoContacto) return;
+  var idx=colegioActual; if(idx===null||!datos[idx]) return;
+  var campo=function(id){ return document.getElementById(id); };
+  var limpio=function(id){ return campo(id).value.replace(/\s+/g," ").trim(); };
+  var c={colegio:String(datos[idx][C.nombre]||"").trim(),nombre:limpio("cNombre"),cargo:limpio("cCargo"),correo:limpio("cCorreo"),telefono:limpio("cTelefono")};
+  campo("cNombre").classList.toggle("invalido",!c.nombre);
+  if(!c.nombre){ mostrarToast("Escribe el nombre del contacto","error"); campo("cNombre").focus(); return; }
+  var correoMal=!!c.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.correo);
+  campo("cCorreo").classList.toggle("invalido",correoMal);
+  if(correoMal){ mostrarToast("Revisa el correo: parece incompleto","error"); campo("cCorreo").focus(); return; }
+  var btn=campo("btnGuardarContacto"); btn.disabled=true; guardandoContacto=true;
+  mostrarToast("Guardando contacto...");
+  try {
+    var res=await llamarScript({accion:"contacto_crear",contacto:c});
+    if(!res.ok){
+      if(/desconocida/i.test(res.error||"")) throw new Error("Falta actualizar el Apps Script: agrega la acción contacto_crear y publica una nueva versión");
+      throw new Error(res.error||"No se pudo guardar el contacto");
+    }
+    contactos.push(res.contacto||[c.colegio,c.cargo,c.nombre,c.correo,c.telefono]);
+    cerrarNuevoContacto();
+    renderContactosFicha();
+    mostrarToast("Contacto agregado en la hoja "+(res.hoja||"contactos"),"ok");
+  } catch(e){
+    if(e.message!=="auth") mostrarToast(e.message==="Failed to fetch"?"Sin conexión: no se guardó el contacto":e.message,"error",9000);
+  } finally { btn.disabled=false; guardandoContacto=false; }
 }
 
 // ══════ LISTA COLEGIOS ══════
@@ -1680,7 +1824,20 @@ function actualizarChart(r){
 // ══════ UTILS ══════
 function autoResize(el){el.style.height="auto";el.style.height=el.scrollHeight+"px";}
 function ajustarTextareas(){document.querySelectorAll("#fichaCard textarea").forEach(function(t){autoResize(t);});}
-function copiarTexto(txt){navigator.clipboard.writeText(txt).then(function(){mostrarToast("Copiado","ok");}).catch(function(){});}
+function copiarTexto(txt){
+  var ok=function(){ mostrarToast("Copiado","ok"); };
+  // Respaldo para navegadores viejos o sin https, donde navigator.clipboard no existe
+  var respaldo=function(){
+    try{
+      var ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,ta.value.length);
+      var bien=document.execCommand("copy"); document.body.removeChild(ta);
+      bien?ok():mostrarToast("No se pudo copiar","error");
+    }catch(e){ mostrarToast("No se pudo copiar","error"); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(String(txt)).then(ok).catch(respaldo);
+  else respaldo();
+}
 var toastTimer=null;
 function mostrarToast(msg,tipo){
   var t=document.getElementById("toast");
@@ -2424,7 +2581,7 @@ if(history.state && history.state.p){ try{ history.replaceState(null,""); }catch
 function cerrarModalesAbiertos(){
   var hubo=false;
   if(document.getElementById("modalConfirmar").classList.contains("active")){ resolverConfirmar(false); hubo=true; }
-  ["modalTarea","modalOverlay","modalInstalar","modalNotif"].forEach(function(id){
+  ["modalTarea","modalContacto","modalOverlay","modalInstalar","modalNotif"].forEach(function(id){
     var m=document.getElementById(id); if(m && m.classList.contains("active")){ m.classList.remove("active"); hubo=true; }
   });
   return hubo;
